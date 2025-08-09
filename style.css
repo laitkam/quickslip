@@ -408,7 +408,6 @@
   text-align: left;
 }
 
-/* Mobile: card style */
 @media (max-width: 600px) {
   #salesTable, #salesTable tbody, #salesTable tr, #salesTable td {
     display: block;
@@ -419,25 +418,45 @@
   }
   #salesTable tr {
     background: #282c34;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     border-radius: 10px;
-    padding: 15px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    padding: 15px 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
   }
   #salesTable td {
-    border: none;
-    padding: 8px 0;
     position: relative;
-    padding-left: 45%;
-    text-align: left;
+    padding-left: 120px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    border: none;
+    border-bottom: 1px solid #44475a;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    white-space: normal;
+    word-wrap: break-word;
+    display: flex;
+    align-items: center;
+  }
+  #salesTable td:last-child {
+    border-bottom: none;
   }
   #salesTable td::before {
     content: attr(data-label);
     position: absolute;
-    left: 15px;
-    top: 8px;
+    left: 20px;
+    width: 100px;
     font-weight: 700;
     color: var(--accent);
     white-space: nowrap;
+  }
+  /* Buttons in Actions column */
+  #salesTable td:last-child {
+    padding-left: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+  }
+  #salesTable td:last-child button {
+    flex: none;
   }
 }
