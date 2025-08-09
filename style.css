@@ -443,3 +443,55 @@
   #salesTable td:nth-child(6)::before { content: "Next Day Change:"; font-weight: 700; color: var(--accent); }
   #salesTable td:nth-child(7)::before { content: "Actions:"; font-weight: 700; color: var(--accent); }
 }
+
+
+/* Desktop: normal table */
+#salesTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#salesTable thead {
+  background-color: #3a3f58;
+  color: var(--text-light);
+}
+
+#salesTable th, #salesTable td {
+  padding: 10px;
+  border: 1px solid #44475a;
+  text-align: left;
+}
+
+/* Mobile: card style */
+@media (max-width: 600px) {
+  #salesTable, #salesTable tbody, #salesTable tr, #salesTable td {
+    display: block;
+    width: 100%;
+  }
+  #salesTable thead {
+    display: none;
+  }
+  #salesTable tr {
+    background: #282c34;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  }
+  #salesTable td {
+    border: none;
+    padding: 8px 0;
+    position: relative;
+    padding-left: 45%;
+    text-align: left;
+  }
+  #salesTable td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 15px;
+    top: 8px;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+}
