@@ -265,17 +265,17 @@ function renderTable(){
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${entry.date}</td>
-      <td>₹${fromPaise(entry.todaySales)}</td>
-      <td>₹${fromPaise(entry.boxActual)}</td>
-      <td>₹${fromPaise(entry.prevChange)}</td>
-      <td class="${varianceClass}">₹${fromPaise(entry.variance)}</td>
-      <td>₹${fromPaise(entry.leftOver)}</td>
-      <td class="actions">
-        <button class="btn-ghost btn-edit" data-index="${i}" aria-label="Edit entry for ${entry.date}">Edit</button>
-        <button class="btn-danger btn-delete" data-index="${i}" aria-label="Delete entry for ${entry.date}">Delete</button>
-      </td>
-    `;
+  <td data-label="Date">${entry.date}</td>
+  <td data-label="Today Sales (₹)">₹${fromPaise(entry.todaySales)}</td>
+  <td data-label="Box (₹)">₹${fromPaise(entry.boxActual)}</td>
+  <td data-label="Prev Day Change (₹)">₹${fromPaise(entry.prevChange)}</td>
+  <td data-label="More or Less (₹)" class="${varianceClass}">₹${fromPaise(entry.variance)}</td>
+  <td data-label="Next Day Change (₹)">₹${fromPaise(entry.leftOver)}</td>
+  <td data-label="Actions">
+    <button class="btn-ghost btn-edit" data-index="${i}" aria-label="Edit entry for ${entry.date}">Edit</button>
+    <button class="btn-danger btn-delete" data-index="${i}" aria-label="Delete entry for ${entry.date}">Delete</button>
+  </td>
+`;
     els.salesTableBody.appendChild(tr);
      updateMonthlySales();
      renderMonthlySalesChart();
