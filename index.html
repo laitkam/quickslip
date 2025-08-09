@@ -9,6 +9,14 @@
 <!-- Chart.js CDN for the sales chart -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="manifest" href="manifest.json" />
+
+<style>
+  /* Added horizontal scrolling for reports table */
+  #reports .card {
+    overflow-x: auto;
+  }
+</style>
+
 </head>
 <body>
   <div class="container">
@@ -104,6 +112,24 @@
         </form>
       </section>
 
+    </section>
+
+    <!-- Dashboard Tab -->
+    <section id="dashboard" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="dashboard-tab" style="color: var(--accent);">
+      <h2>Monthly Sales Summary</h2>
+      <div>
+        <strong>Total Sales This Month: </strong>
+        <span id="monthlySalesAmount">₹0.00</span>
+      </div>
+      <section id="chartSection" style="margin-top:20px; height: 300px;">
+        <canvas id="monthlySalesChart"></canvas>
+      </section>
+    </section>
+
+    <!-- Reports Tab -->
+    <section id="reports" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="reports-tab" style="color: var(--accent); padding: 10px;">
+      <h2>Reports</h2>
+      
       <section class="card" aria-label="Saved sales entries" style="margin-top: 20px;">
         <table id="salesTable" aria-describedby="tableDesc">
           <caption id="tableDesc" style="text-align:left; padding-bottom:8px; color: var(--text-muted);">
@@ -149,24 +175,6 @@
       <input type="file" id="importCsvInput" accept=".csv" style="display:none" />
       <button type="button" id="importCsvBtn">Import CSV</button>
 
-    </section>
-
-    <!-- Dashboard Tab -->
-    <section id="dashboard" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="dashboard-tab" style="color: var(--accent);">
-      <h2>Monthly Sales Summary</h2>
-      <div>
-        <strong>Total Sales This Month: </strong>
-        <span id="monthlySalesAmount">₹0.00</span>
-      </div>
-      <section id="chartSection" style="margin-top:20px; height: 300px;">
-        <canvas id="monthlySalesChart"></canvas>
-      </section>
-    </section>
-
-    <!-- Reports Tab -->
-    <section id="reports" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="reports-tab" style="color: var(--accent); padding: 10px;">
-      <h2>Reports</h2>
-      <p>Coming soon: Filters, detailed reports, export options.</p>
     </section>
 
     <!-- Settings Tab -->
