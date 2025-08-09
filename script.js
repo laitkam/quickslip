@@ -227,30 +227,30 @@ function renderMonthlySalesChart() {
   }
 }
 
-function renderTable() {
+function renderTable(){
   function updateMonthlySales() {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
 
-    let totalSalesPaise = 0;
+  let totalSalesPaise = 0;
 
-    entries.forEach(entry => {
-      const entryDate = new Date(entry.date);
-      if (
-        entryDate.getMonth() === currentMonth &&
-        entryDate.getFullYear() === currentYear
-      ) {
-        totalSalesPaise += entry.todaySales;
-      }
-    });
-
-    const formatted = fromPaise(totalSalesPaise) || '0.00';
-    const monthlyElem = document.getElementById('monthlySalesAmount');
-    if (monthlyElem) {
-      monthlyElem.textContent = `₹${formatted}`;
+  entries.forEach(entry => {
+    const entryDate = new Date(entry.date);
+    if (
+      entryDate.getMonth() === currentMonth &&
+      entryDate.getFullYear() === currentYear
+    ) {
+      totalSalesPaise += entry.todaySales;
     }
+  });
+
+  const formatted = fromPaise(totalSalesPaise) || '0.00';
+  const monthlyElem = document.getElementById('monthlySalesAmount');
+  if (monthlyElem) {
+    monthlyElem.textContent = `₹${formatted}`;
   }
+}
 
   els.salesTableBody.innerHTML = '';
 
@@ -265,45 +265,21 @@ function renderTable() {
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="Date">${entry.date}</td>
-      <td data-label="Today Sales (₹)">₹${fromPaise(entry.todaySales)}</td>
-      <td data-label="Box (₹)">₹${fromPaise(entry.boxActual)}</td>
-      <td data-label="Prev Day Change (₹)">₹${fromPaise(entry.prevChange)}</td>
-      <td data-label="More or Less (₹)" class="${varianceClass}">₹${fromPaise(entry.variance)}</td>
-      <td data-label="Next Day Change (₹)">₹${fromPaise(entry.leftOver)}</td>
-      <td data-label="Actions">
+      <td>${entry.date}</td>
+      <td>₹${fromPaise(entry.todaySales)}</td>
+      <td>₹${fromPaise(entry.boxActual)}</td>
+      <td>₹${fromPaise(entry.prevChange)}</td>
+      <td class="${varianceClass}">₹${fromPaise(entry.variance)}</td>
+      <td>₹${fromPaise(entry.leftOver)}</td>
+      <td class="actions">
         <button class="btn-ghost btn-edit" data-index="${i}" aria-label="Edit entry for ${entry.date}">Edit</button>
         <button class="btn-danger btn-delete" data-index="${i}" aria-label="Delete entry for ${entry.date}">Delete</button>
       </td>
     `;
     els.salesTableBody.appendChild(tr);
+     updateMonthlySales();
+     renderMonthlySalesChart();
   });
-
-  // Update totals in footer (optional)
-  const totalSalesElem = document.getElementById('totalSales');
-  if (totalSalesElem) totalSalesElem.textContent = fromPaise(totalSalesPaise);
-
-  const totalBoxElem = document.getElementById('totalBox');
-  if (totalBoxElem) totalBoxElem.textContent = fromPaise(totalBoxPaise);
-
-  // Attach Edit & Delete handlers after DOM update
-  document.querySelectorAll('.btn-edit').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const idx = +e.target.dataset.index;
-      loadEntryForEdit(idx);
-    });
-  });
-
-  document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const idx = +e.target.dataset.index;
-      deleteEntry(idx);
-    });
-  });
-
-  // Call monthly sales update here
-  updateMonthlySales();
-}
   
 
   els.totalSales.textContent = `₹${fromPaise(totalSalesPaise)}`;
