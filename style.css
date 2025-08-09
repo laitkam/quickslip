@@ -1,0 +1,390 @@
+  /* Neovim-inspired dark theme palette */
+  :root {
+    --bg: #0d0c37;
+    --card: #2e2e3e;
+    --muted: #a9aeb9;
+    --accent: #7aa2f7;
+    --success: #98c379;
+    --danger: #e06c75;
+    --glass: rgba(247, 193, 122, 0.1);
+    --text-light: #dcdfe4;
+    --text-muted: #7f848e;
+    --shadow: rgba(0, 0, 0, 0.7);
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    padding: 28px;
+    color: var(--text-light);
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  
+  
+  header h1 {
+  font-size: 25px;
+  margin: 0;
+  color: var(--accent);
+  margin-bottom: -20px;
+}
+  header {
+  display: flex;
+  flex-direction: column;     /* stack vertically */
+  align-items: center;        /* center horizontally */
+  gap: 0px;                   /* smaller gap between h1 and muted */
+  margin-bottom: 20px;
+}
+
+
+.muted {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 6px 18px var(--shadow);
+    margin-bottom: 24px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  label {
+    display: block;
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  input[type="text"], input[type="number"], input[type="date"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #44475a;
+    border-radius: 8px;
+    font-size: 15px;
+    background: #282c34;
+    color: var(--text-light);
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus {
+    border-color: var(--accent);
+    outline: none;
+    background: #3a3f58;
+  }
+
+  input[readonly] {
+    background: #21252b;
+    color: var(--text-light);
+  }
+
+  .full {
+    grid-column: 1 / -1;
+  }
+
+  .row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+  }
+
+  .big {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-light);
+    background: var(--glass);
+    padding: 12px;
+    border-radius: 10px;
+    text-align: right;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  button {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 0;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color 0.3s;
+    color: var(--text-light);
+  }
+
+  .btn-primary {
+    background: var(--accent);
+  }
+  .btn-primary:hover {
+    background: #5a7adf;
+  }
+  .btn-ghost {
+    background: #44475a;
+    color: var(--text-light);
+    border: 1px solid #44475a;
+  }
+  .btn-ghost:hover {
+    background: #565f7e;
+    border-color: var(--accent);
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    border: none;
+    color: var(--text-light);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s;
+  }
+  .btn-danger:hover {
+    background: #b34042;
+  }
+
+  .note {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 10px;
+  }
+
+  @media (max-width: 640px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+    .big {
+      text-align: left;
+    }
+  }
+
+  .status {
+    font-size: 13px;
+    padding: 8px;
+    border-radius: 8px;
+    user-select: none;
+  }
+  .ok {
+    background: rgba(152, 195, 121, 0.2);
+    color: var(--success);
+  }
+  .warn {
+    background: rgba(122, 162, 247, 0.15);
+    color: var(--accent);
+  }
+  .err {
+    background: rgba(224, 108, 117, 0.2);
+    color: var(--danger);
+  }
+
+  /* Table styles */
+  table {
+    width: 100%;
+    font-size: 12px;
+    border-collapse: collapse;
+    color: var(--text-light);
+  }
+  thead {
+    background-color: #3a3f58;
+  }
+  th, td {
+    padding: 10px;
+    border: 1px solid #44475a;
+    text-align: left;
+  }
+  tbody tr:nth-child(even) {
+    background-color: #282c34;
+  }
+  tbody tr:hover {
+    background-color: #3a3f58;
+  }
+  .variance-positive {
+    color: var(--success);
+    font-weight: 600;
+  }
+  .variance-negative {
+    color: var(--danger);
+    font-weight: 600;
+  }
+  .totals-row {
+    font-weight: 700;
+    background: #44475a;
+  }
+/* Neovim-inspired dark theme button styles */
+#exportCsvBtn,
+#importCsvBtn,
+#exportBtn,
+#importBtn,
+#exportXlsxBtn {
+  background-color: #3a3f58;  /* Dark slate blue */
+  color: #f8f8f2;             /* Light text */
+  border: 1px solid #6272a4;  /* Muted blue border */
+  padding: 10px 20px;
+  margin: 6px 10px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+  box-shadow: 0 0 8px #6272a4aa;
+  user-select: none;
+}
+
+#exportCsvBtn:hover,
+#importCsvBtn:hover,
+#exportBtn:hover,
+#importBtn:hover,
+#exportXlsxBtn:hover {
+  background-color: #6272a4;  /* Lighter blue on hover */
+  border-color: #8be9fd;      /* Neon blue border on hover */
+  box-shadow: 0 0 12px #8be9fdaa;
+}
+
+#exportCsvBtn:active,
+#importCsvBtn:active,
+#exportBtn:active,
+#importBtn:active,
+#exportXlsxBtn:active {
+  background-color: #444b6e;  /* Slightly darker on click */
+  border-color: #50fa7b;      /* Neon green border on active */
+  box-shadow: 0 0 6px #50fa7baa;
+  transform: translateY(1px);
+}
+
+/* Focus style for accessibility */
+#exportCsvBtn:focus,
+#importCsvBtn:focus,
+#exportBtn:focus,
+#importBtn:focus,
+#exportXlsxBtn:focus {
+  outline: 2px solid #8be9fd;
+  outline-offset: 2px;
+}
+/* Neovim-inspired dark theme button styles with icons */
+#exportCsvBtn::before,
+#importCsvBtn::before,
+#exportBtn::before,
+#importBtn::before,
+#exportXlsxBtn::before {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+  font-size: 18px;
+}
+
+/* Download icon for export buttons */
+#exportCsvBtn::before,
+#exportBtn::before,
+#exportXlsxBtn::before {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Upload icon for import buttons */
+#importCsvBtn::before,
+#importBtn::before {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+}
+
+.btn-icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 8px;
+  pointer-events: none; /* So clicking the icon triggers the button */
+}
+#exportCsvBtn {
+  background-image: url('download.png');
+  background-repeat: no-repeat;
+  background-position: 8px center;
+  background-size: 18px 18px;
+  padding-left: 34px; /* Leave space so text doesn't overlap the icon */
+  color: #f8f8f2; /* Your light text color */
+  border: 1px solid #6272a4;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.25s ease;
+}
+
+#exportCsvBtn:hover {
+  background-color: #6272a4;
+}
+
+#importCsvBtn {
+  background-image: url('upload.png');
+  background-repeat: no-repeat;
+  background-position: 8px center;
+  background-size: 18px 18px;
+  padding-left: 34px;
+  color: #f8f8f2;
+  border: 1px solid #6272a4;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.25s ease;
+}
+
+#importCsvBtn:hover {
+  background-color: #6272a4;
+}
+#dashboard {
+  background-color: #282c34;
+  color: var(--accent);
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  user-select: none;
+}
+.tab-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  padding: 8px 15px;
+  cursor: pointer;
+  font-weight: 600;
+  border-radius: 5px;
+  transition: background 0.3s ease;
+}
+
+.tab-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
