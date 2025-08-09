@@ -388,3 +388,58 @@
 .tab-content.active {
   display: block;
 }
+
+
+/* Desktop: keep normal table */
+@media (min-width: 601px) {
+  #salesTable {
+    display: table;
+  }
+  #salesTable thead, #salesTable tbody, #salesTable tr, #salesTable th, #salesTable td {
+    display: table-row-group;
+    border: 1px solid #44475a;
+  }
+  #salesTable th, #salesTable td {
+    display: table-cell;
+  }
+}
+
+/* Mobile: hide table header, display rows as cards */
+@media (max-width: 600px) {
+  #salesTable {
+    display: block;
+  }
+  #salesTable thead {
+    display: none;
+  }
+  #salesTable tbody {
+    display: block;
+  }
+  #salesTable tr {
+    display: block;
+    margin-bottom: 1rem;
+    background: #282c34;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.3);
+  }
+  #salesTable td {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border: none;
+    border-bottom: 1px solid #44475a;
+    font-size: 0.9rem;
+  }
+  #salesTable td:last-child {
+    border-bottom: none;
+  }
+  /* Add labels before data */
+  #salesTable td:nth-child(1)::before { content: "Date:"; font-weight: 700; color: var(--accent); }
+  #salesTable td:nth-child(2)::before { content: "Today Sales:"; font-weight: 700; color: var(--accent); }
+  #salesTable td:nth-child(3)::before { content: "Box:"; font-weight: 700; color: var(--accent); }
+  #salesTable td:nth-child(4)::before { content: "Prev Change:"; font-weight: 700; color: var(--accent); }
+  #salesTable td:nth-child(5)::before { content: "More/Less:"; font-weight: 700; color: var(--accent); }
+  #salesTable td:nth-child(6)::before { content: "Next Day Change:"; font-weight: 700; color: var(--accent); }
+  #salesTable td:nth-child(7)::before { content: "Actions:"; font-weight: 700; color: var(--accent); }
+}
