@@ -455,7 +455,40 @@ tabs.forEach(tab => {
 
 // Service worker registration (optional, adjust path if needed)
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  navigator.serviceWorker.register('service-worker.js').then(reg => {
+    // Listen for updates to the service worker
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          // New update available, prompt user to reload
+          showUpdateNotification();
+        }
+      });
+    });
+  }).catch(() => {});
+}
+
+// Show update notification and reload button
+function showUpdateNotification() {
+  let notif = document.getElementById('pwaUpdateNotif');
+  if (!notif) {
+    notif = document.createElement('div');
+    notif.id = 'pwaUpdateNotif';
+    notif.style.position = 'fixed';
+    notif.style.bottom = '24px';
+    notif.style.left = '50%';
+    notif.style.transform = 'translateX(-50%)';
+    notif.style.background = '#222';
+    notif.style.color = '#fff';
+    notif.style.padding = '16px 24px';
+    notif.style.borderRadius = '8px';
+    notif.style.boxShadow = '0 2px 12px #0008';
+    notif.style.zIndex = '9999';
+    notif.innerHTML = 'A new version is available. <button id="reloadPwaBtn" style="margin-left:12px;padding:6px 16px;border-radius:5px;border:none;background:#7aa2f7;color:#fff;font-weight:600;cursor:pointer;">Reload</button>';
+    document.body.appendChild(notif);
+    document.getElementById('reloadPwaBtn').onclick = () => window.location.reload(true);
+  }
 }
 
 // Init
