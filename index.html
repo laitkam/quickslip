@@ -41,8 +41,6 @@
         </div>
       </form>
     </div>
-    <!-- Logout Button -->
-    <button id="logoutBtn" class="btn-ghost" style="position:fixed;top:18px;right:18px;z-index:1000;display:none;">Logout</button>
 
     <!-- Existing content... -->
     <nav class="tab-bar" role="tablist" aria-label="Main navigation tabs">
@@ -217,10 +215,34 @@
     <section id="settings" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="settings-tab" style="color: var(--accent); padding: 10px;">
       <h2>Settings</h2>
       <p>Coming soon: Customize preferences, theme toggle, backup options.</p>
+      <button id="logoutBtn" class="btn-ghost" style="margin-top:20px;display:none;">Logout</button>
     </section>
 
   </div>
 
   <script src="script.js"></script>
+  <script>
+    // --- Tab persistence logic ---
+    document.addEventListener('DOMContentLoaded', function () {
+      // Restore last tab
+      const lastTab = localStorage.getItem('activeTab');
+      if (lastTab) {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.tab === lastTab);
+          btn.setAttribute('aria-selected', btn.dataset.tab === lastTab ? 'true' : 'false');
+        });
+        document.querySelectorAll('.tab-content').forEach(sec => {
+          sec.classList.toggle('active', sec.id === lastTab);
+        });
+      }
+
+      // Save tab on click
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+          localStorage.setItem('activeTab', btn.dataset.tab);
+        });
+      });
+    });
+  </script>
 </body>
 </html>
