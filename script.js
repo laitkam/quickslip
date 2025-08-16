@@ -798,4 +798,31 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
+  // --- Profile dropdown logic (fix for account/profile button not working) ---
+  const profileBtn = document.getElementById('profileBtn');
+  const profileDropdown = document.getElementById('profileDropdown');
+  const profileBtnPic = document.getElementById('profileBtnPic');
+  // Remove pointer-events:none from children if present (should be handled in HTML/CSS)
+  // Forward click from profileBtnPic to profileBtn for accessibility
+  if (profileBtnPic) {
+    profileBtnPic.addEventListener('click', function(e) {
+      e.stopPropagation();
+      profileBtn.focus();
+      profileBtn.click();
+    });
+  }
+
+  profileBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const show = profileDropdown.style.display !== 'block';
+    profileDropdown.style.display = show ? 'block' : 'none';
+    profileBtn.setAttribute('aria-expanded', show ? 'true' : 'false');
+  });
+  // Hide dropdown on click outside
+  document.addEventListener('click', function(e) {
+    if (!profileDropdown.contains(e.target) && e.target !== profileBtn) {
+      profileDropdown.style.display = 'none';
+      profileBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
 });
