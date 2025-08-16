@@ -379,8 +379,16 @@ els.exportCsvBtn.addEventListener('click', () => {
 
 // Import CSV with preview
 els.importCsvBtn.addEventListener('click', () => {
+  // Clear value to allow re-importing the same file on mobile
   els.importCsvInput.value = '';
-  els.importCsvInput.click();
+  // On some mobile browsers, input.click() needs to be in a setTimeout to work reliably
+  setTimeout(() => {
+    els.importCsvInput.click();
+  }, 100);
+});
+els.importCsvInput.addEventListener('click', (e) => {
+  // For some mobile browsers, force re-creation of the input to ensure file picker opens
+  e.target.value = '';
 });
 els.importCsvInput.addEventListener('change', e => {
   const file = e.target.files[0];
