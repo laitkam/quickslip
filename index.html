@@ -57,27 +57,27 @@
 
             <div>
               <label for="prevChange">Previous day change (₹)</label>
-              <input id="prevChange" name="prevChange" type="text" inputmode="decimal" placeholder="0.00">
+              <input id="prevChange" name="prevChange" type="text" inputmode="numeric" placeholder="0">
             </div>
 
             <div>
               <label for="todaySales">Today sales (₹)</label>
-              <input id="todaySales" name="todaySales" type="text" inputmode="decimal" placeholder="0.00">
+              <input id="todaySales" name="todaySales" type="text" inputmode="numeric" placeholder="0">
             </div>
 
             <div>
               <label for="boxActual">Box (Actual cash) (₹)</label>
-              <input id="boxActual" name="boxActual" type="text" inputmode="decimal" placeholder="0.00">
+              <input id="boxActual" name="boxActual" type="text" inputmode="numeric" placeholder="0">
             </div>
 
             <div>
               <label for="takenSaving">Saving (₹)</label>
-              <input id="takenSaving" name="takenSaving" type="text" inputmode="decimal" placeholder="0.00">
+              <input id="takenSaving" name="takenSaving" type="text" inputmode="numeric" placeholder="0">
             </div>
 
             <div>
               <label for="leftOver">Left over cash for next day change (₹)</label>
-              <input id="leftOver" name="leftOver" type="text" readonly>
+              <input id="leftOver" name="leftOver" type="text" inputmode="numeric" placeholder="0">
             </div>
 
             <div class="full">
@@ -94,7 +94,7 @@
           <div class="row">
             <div>
               <div id="status" class="status ok">All inputs look good.</div>
-              <div class="note">Tip: enter numbers like <em>120.50</em>. Negative entries are not allowed.</div>
+              <div class="note">Tip: enter whole numbers only. Decimals are not allowed.</div>
             </div>
 
             <div class="buttons">
@@ -109,13 +109,13 @@
 
     <!-- Dashboard Tab -->
     <section id="dashboard" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="dashboard-tab" style="color: var(--accent);">
-      <h2>Monthly Sales Summary</h2>
+      <h2>Daily Sales This Month</h2>
       <div>
         <strong>Total Sales This Month: </strong>
         <span id="monthlySalesAmount">₹0.00</span>
       </div>
       <section id="chartSection" style="margin-top:20px; height: 300px;">
-        <canvas id="monthlySalesChart"></canvas>
+        <canvas id="monthlySalesChart" aria-label="Daily sales bar chart"></canvas>
       </section>
     </section>
 
@@ -124,40 +124,48 @@
       <h2>Reports</h2>
       
       <section class="card" aria-label="Saved sales entries" style="margin-top: 20px;">
-        <table id="salesTable" aria-describedby="tableDesc">
-          <caption id="tableDesc" style="text-align:left; padding-bottom:8px; color: var(--text-muted);">
-            Entries with edit and delete options
-          </caption>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Today Sales (₹)</th>
-              <th>Box (₹)</th>
-              <th>Prev Day Change (₹)</th>
-              <th>More or Less (₹)</th>
-              <th>Next Day Change (₹)</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Entries will appear here -->
-          </tbody>
-          <tfoot>
-            <tr class="totals-row">
-              <td>Total</td>
-              <td id="totalSales">0.00</td>
-              <td id="totalBox">0.00</td>
-              <td colspan="4"></td>
-            </tr>
-          </tfoot>
-        </table>
+        <div class="table-scroll">
+          <table id="salesTable" aria-describedby="tableDesc">
+            <caption id="tableDesc" style="text-align:left; padding-bottom:8px; color: var(--text-muted);">
+              Entries with edit and delete options
+            </caption>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Today Sales (₹)</th>
+                <th>Box (₹)</th>
+                <th>Prev Day Change (₹)</th>
+                <th>More or Less (₹)</th>
+                <th>Next Day Change (₹)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Entries will appear here -->
+            </tbody>
+            <tfoot>
+              <tr class="totals-row">
+                <td>Total</td>
+                <td id="totalSales">0.00</td>
+                <td id="totalBox">0.00</td>
+                <td colspan="4"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </section>
 
       <div id="importPreviewContainer" style="display:none; margin-top: 10px;">
         <h3>CSV Preview</h3>
         <table id="importPreviewTable" border="1" cellpadding="5" cellspacing="0" style="width:100%; border-collapse: collapse;"></table>
-        <button id="confirmImportBtn">Confirm Import</button>
-        <button id="cancelImportBtn">Cancel Import</button>
+        <button id="confirmImportBtn" class="btn-primary" type="button">
+          <span class="btn-icon" style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('download.png') no-repeat center/contain;margin-right:6px;"></span>
+          Confirm Import
+        </button>
+        <button id="cancelImportBtn" class="btn-ghost" type="button">
+          <span class="btn-icon" style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('upload.png') no-repeat center/contain;margin-right:6px;transform:rotate(180deg);"></span>
+          Cancel Import
+        </button>
       </div>
 
       <div id="backupReminder" style="margin-top:15px; color:orange; font-weight:bold; display:none;">

@@ -1,4 +1,4 @@
-  /* Neovim-inspired dark theme palette */
+/* Neovim-inspired dark theme palette */
   :root {
     --bg: #0d0c37;
     --card: #2e2e3e;
@@ -459,4 +459,114 @@
   #salesTable td:last-child button {
     flex: none;
   }
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+}
+
+/* Plain Excel-like table style */
+#salesTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  color: #222;
+  font-size: 14px;
+  margin: 0;
+}
+
+#salesTable thead {
+  background: #e9ecef;
+}
+
+#salesTable th, #salesTable td {
+  padding: 10px 8px;
+  border: 1px solid #bfc4cc;
+  text-align: left;
+  background: none;
+  color: #222;
+}
+
+#salesTable th {
+  font-weight: 700;
+  background: #e9ecef;
+  color: #222;
+}
+
+#salesTable tbody tr {
+  background: #fff;
+  transition: background 0.2s;
+}
+
+#salesTable tbody tr:hover {
+  background: #f5f7fa;
+}
+
+#salesTable .variance-positive {
+  color: #198754;
+  font-weight: 600;
+}
+#salesTable .variance-negative {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+#salesTable .totals-row {
+  background: #e9ecef;
+  color: #222;
+  font-weight: 700;
+  border-top: 2px solid #7aa2f7;
+}
+
+#salesTable caption {
+  caption-side: top;
+  padding-bottom: 8px;
+  color: #888;
+  font-size: 13px;
+  text-align: left;
+}
+
+/* Always keep table as table, just allow horizontal scroll on small screens */
+@media (max-width: 700px) {
+  .table-scroll {
+    overflow-x: auto;
+  }
+  #salesTable, #salesTable thead, #salesTable tbody, #salesTable tfoot, #salesTable tr, #salesTable th, #salesTable td {
+    display: table;
+    width: auto;
+    box-sizing: border-box;
+  }
+  #salesTable th, #salesTable td {
+    white-space: nowrap;
+  }
+}
+
+#confirmImportBtn.btn-primary,
+#cancelImportBtn.btn-ghost {
+  margin: 8px 10px 8px 0;
+  min-width: 140px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 5px;
+  box-shadow: 0 0 8px #6272a422;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+#confirmImportBtn .btn-icon,
+#cancelImportBtn .btn-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  pointer-events: none;
 }

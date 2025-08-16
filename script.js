@@ -1,34 +1,24 @@
-
-/* Utility: parse currency string to integer paise (avoid float issues). */
-function toPaise(str){
+/* Utility: parse currency string to integer rupees (no decimals). */
+function toPaise(str) {
   if (str === null || str === undefined) return 0;
   str = String(str).trim().replace(/,/g, '');
   if (str === '') return 0;
-  if (/^-/.test(str)) return NaN;
-  const parts = str.split('.');
-  const rupees = parseInt(parts[0] || '0', 10);
+  if (/^-/.test(str)) return NaN; // Negative not allowed
+  // Only take integer part
+  const rupees = parseInt(str.split('.')[0] || '0', 10);
   if (isNaN(rupees)) return NaN;
-  let paise = rupees * 100;
-  if (parts[1]){
-    let dec = parts[1].slice(0,2);
-    if (dec.length === 1) dec = dec + '0';
-    while (dec.length < 2) dec += '0';
-    const d = parseInt(dec,10);
-    if (isNaN(d)) return NaN;
-    paise += d;
-  }
-  return paise;
+  return rupees;
 }
 
-function fromPaise(p){
+function fromPaise(p) {
   if (isNaN(p)) return '';
   const sign = p < 0 ? '-' : '';
   p = Math.abs(p);
-  const rupees = Math.floor(p / 100);
-  const paise = p % 100;
-  return sign + rupees.toLocaleString('en-IN') + '.' + String(paise).padStart(2,'0');
+  // No decimals, just return integer with commas
+  return sign + p.toLocaleString('en-IN');
 }
 
+// DOM elements
 const els = {
   date: document.getElementById('date'),
   prevChange: document.getElementById('prevChange'),
@@ -44,102 +34,128 @@ const els = {
   salesTableBody: document.querySelector('#salesTable tbody'),
   totalSales: document.getElementById('totalSales'),
   totalBox: document.getElementById('totalBox'),
+  monthlySalesAmount: document.getElementById('monthlySalesAmount'),
+  exportCsvBtn: document.getElementById('exportCsvBtn'),
+  importCsvBtn: document.getElementById('importCsvBtn'),
+  importCsvInput: document.getElementById('importCsvInput'),
+  importPreviewContainer: document.getElementById('importPreviewContainer'),
+  importPreviewTable: document.getElementById('importPreviewTable'),
+  confirmImportBtn: document.getElementById('confirmImportBtn'),
+  cancelImportBtn: document.getElementById('cancelImportBtn'),
+  backupReminder: document.getElementById('backupReminder'),
 };
 
 let entries = [];
 let editIndex = -1;
+let dailySalesChart = null; // rename for clarity
+let importedEntriesTemp = null;
+let lastChanged = null; // Track which field was last changed: 'saving' or 'leftOver'
 
+// LocalStorage
 function saveToLocalStorage() {
   localStorage.setItem('salesEntries', JSON.stringify(entries));
 }
-
 function loadFromLocalStorage() {
   const data = localStorage.getItem('salesEntries');
-  if (data) {
-    try {
-      entries = JSON.parse(data);
-    } catch {
-      entries = [];
-    }
-  }
+  if (data) entries = JSON.parse(data);
 }
 
-function setToday(){
+// Date helpers
+function setToday() {
   const today = new Date();
   const y = today.getFullYear();
-  const m = String(today.getMonth()+1).padStart(2,'0');
-  const d = String(today.getDate()).padStart(2,'0');
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
   els.date.value = `${y}-${m}-${d}`;
 }
-
-function setPrevChangeFromLastEntry(){
-  if(entries.length === 0){
-    els.prevChange.value = '0.00';
+function setPrevChangeFromLastEntry() {
+  if (entries.length === 0) {
+    els.prevChange.value = '';
   } else {
-    const lastLeftOver = entries[entries.length -1].leftOver;
-    els.prevChange.value = fromPaise(lastLeftOver) || '0.00';
+    const last = entries[entries.length - 1];
+    els.prevChange.value = fromPaise(last.leftOver);
   }
 }
-
-// On load and after reset: set date + prevChange from last leftover
-function setTodayAndPrevChange(){
+function setTodayAndPrevChange() {
   setToday();
   setPrevChangeFromLastEntry();
 }
 
-function validateAndCalc(){
+// Validation and calculation
+function validateAndCalc() {
   const p = toPaise(els.prevChange.value);
   const s = toPaise(els.todaySales.value);
   const box = toPaise(els.boxActual.value);
-  const taken = toPaise(els.takenSaving.value);
+  let taken = toPaise(els.takenSaving.value);
+  let leftOverPaise = toPaise(els.leftOver.value);
 
-  if ([p,s,box,taken].some(v => Number.isNaN(v))){
-    els.status.textContent = 'Please enter valid non-negative numbers (use dot for decimals).';
+  // If both are empty, treat as zero
+  if (isNaN(taken)) taken = 0;
+  if (isNaN(leftOverPaise)) leftOverPaise = 0;
+
+  // Sync logic: if one is changed, update the other
+  if (lastChanged === 'saving') {
+    leftOverPaise = box - taken;
+    els.leftOver.value = isNaN(leftOverPaise) ? '' : fromPaise(leftOverPaise);
+  } else if (lastChanged === 'leftOver') {
+    taken = box - leftOverPaise;
+    els.takenSaving.value = isNaN(taken) ? '' : fromPaise(taken);
+  } else {
+    // Default: update leftOver based on saving
+    leftOverPaise = box - taken;
+    els.leftOver.value = isNaN(leftOverPaise) ? '' : fromPaise(leftOverPaise);
+  }
+
+  if ([p, s, box, taken, leftOverPaise].some(v => Number.isNaN(v))) {
+    els.status.textContent = 'Please enter valid numbers (no negatives).';
     els.status.className = 'status err';
-    els.leftOver.value = '';
-    els.expectedBox.value = '';
-    els.variance.value = '';
     return false;
   }
-  if ([p,s,box,taken].some(v => v < 0)){
+  if ([p, s, box, taken, leftOverPaise].some(v => v < 0)) {
     els.status.textContent = 'Negative values are not allowed.';
     els.status.className = 'status err';
     return false;
   }
 
   const expected = p + s;
-  const leftOverPaise = box - taken;
   const variancePaise = box - expected;
 
   els.expectedBox.value = fromPaise(expected);
   els.variance.value = fromPaise(variancePaise);
-  els.leftOver.value = isNaN(leftOverPaise) ? '' : fromPaise(leftOverPaise);
 
-  if (variancePaise === 0){
-    els.status.textContent = 'Exact match: Actual equals expected.';
+  if (variancePaise === 0) {
+    els.status.textContent = 'All inputs look good.';
     els.status.className = 'status ok';
-  } else if (variancePaise > 0){
-    els.status.textContent = 'Positive variance: more cash than expected.';
-    els.status.className = 'status warn';
+  } else if (leftOverPaise < 0) {
+    els.status.textContent = 'Warning: Left over cash is negative!';
+    els.status.className = 'status err';
   } else {
-    els.status.textContent = 'Negative variance: less cash than expected.';
-    els.status.className = 'status err';
+    els.status.textContent = 'Check variance and cash values.';
+    els.status.className = 'status warn';
   }
-  if (leftOverPaise < 0){
-    els.status.textContent = 'Warning: Taken for saving exceeds box (leftover negative).';
-    els.status.className = 'status err';
-  }
-
   return true;
 }
 
-['input','change','blur'].forEach(ev=>{
-  ['prevChange','todaySales','boxActual','takenSaving'].forEach(id=>{
-    document.getElementById(id).addEventListener(ev, validateAndCalc);
+// Input listeners
+['input', 'change', 'blur'].forEach(ev => {
+  ['prevChange', 'todaySales', 'boxActual'].forEach(id => {
+    els[id].addEventListener(ev, () => {
+      lastChanged = null;
+      validateAndCalc();
+    });
+  });
+  els.takenSaving.addEventListener(ev, () => {
+    lastChanged = 'saving';
+    validateAndCalc();
+  });
+  els.leftOver.addEventListener(ev, () => {
+    lastChanged = 'leftOver';
+    validateAndCalc();
   });
 });
 
-els.resetBtn.addEventListener('click', ()=>{
+// Reset
+els.resetBtn.addEventListener('click', () => {
   document.getElementById('saleForm').reset();
   setTodayAndPrevChange();
   els.leftOver.value = els.expectedBox.value = els.variance.value = '';
@@ -147,159 +163,100 @@ els.resetBtn.addEventListener('click', ()=>{
   els.status.className = 'status ok';
   editIndex = -1;
   els.saveBtn.textContent = 'Save Entry';
+  lastChanged = null;
 });
-let monthlySalesChart; // chart instance
 
-function renderMonthlySalesChart() {
-  // Prepare data: sum sales per month for the current year
+// Chart rendering: show daily sales for current month
+function renderDailySalesChart() {
   const now = new Date();
   const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-based
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-  // Initialize array with 12 months = 0 paise sales each
-  const salesByMonth = new Array(12).fill(0);
+  // Prepare daily sales array
+  const salesByDay = new Array(daysInMonth).fill(0);
 
   entries.forEach(entry => {
-    const entryDate = new Date(entry.date);
-    if (entryDate.getFullYear() === currentYear) {
-      const month = entryDate.getMonth(); // 0-11
-      salesByMonth[month] += entry.todaySales;
+    const [y, m, d] = entry.date.split('-').map(Number);
+    if (y === currentYear && m === currentMonth + 1) {
+      // day is 1-based, so subtract 1 for array index
+      salesByDay[d - 1] += entry.todaySales;
     }
   });
 
-  // Convert paise to rupees for labels
-  const salesInRupees = salesByMonth.map(paise => parseFloat(fromPaise(paise)));
-
-  // Month labels
-  const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-  // If chart exists, update data, else create new chart
+  // No decimals
+  const salesInRupees = salesByDay.map(val => val);
+  const dayLabels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
   const ctx = document.getElementById('monthlySalesChart').getContext('2d');
 
-  if (monthlySalesChart) {
-    monthlySalesChart.data.datasets[0].data = salesInRupees;
-    monthlySalesChart.update();
+  if (dailySalesChart) {
+    dailySalesChart.data.labels = dayLabels;
+    dailySalesChart.data.datasets[0].data = salesInRupees;
+    dailySalesChart.update();
   } else {
-    monthlySalesChart = new Chart(ctx, {
+    dailySalesChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: monthLabels,
+        labels: dayLabels,
         datasets: [{
-          label: 'Monthly Sales (₹)',
+          label: 'Daily Sales (₹)',
           data: salesInRupees,
-          backgroundColor: '#50fa7b',
+          backgroundColor: '#7aa2f7',
         }]
       },
       options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              color: '#50fa7b',
-            },
-            grid: {
-              color: '#44475a',
-            }
-          },
-          x: {
-            ticks: {
-              color: '#50fa7b',
-            },
-            grid: {
-              color: '#44475a',
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            labels: {
-              color: '#50fa7b',
-              font: {
-                size: 14,
-                weight: 'bold',
-              }
-            }
-          }
-        },
         responsive: true,
-        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { title: { display: true, text: 'Day of Month' } },
+          y: { title: { display: true, text: 'Sales (₹)' }, beginAtZero: true, ticks: { precision: 0 } }
+        }
       }
     });
   }
 }
 
-function renderTable(){
-  function updateMonthlySales() {
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-
-  let totalSalesPaise = 0;
-
-  entries.forEach(entry => {
-    const entryDate = new Date(entry.date);
-    if (
-      entryDate.getMonth() === currentMonth &&
-      entryDate.getFullYear() === currentYear
-    ) {
-      totalSalesPaise += entry.todaySales;
-    }
-  });
-
-  const formatted = fromPaise(totalSalesPaise) || '0.00';
-  const monthlyElem = document.getElementById('monthlySalesAmount');
-  if (monthlyElem) {
-    monthlyElem.textContent = `₹${formatted}`;
-  }
-}
-
+// Table rendering
+function renderTable() {
   els.salesTableBody.innerHTML = '';
-
   let totalSalesPaise = 0;
   let totalBoxPaise = 0;
 
   entries.forEach((entry, i) => {
     totalSalesPaise += entry.todaySales;
     totalBoxPaise += entry.boxActual;
-
-    const varianceClass = entry.variance >= 0 ? 'variance-positive' : 'variance-negative';
-
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${entry.date}</td>
-      <td>₹${fromPaise(entry.todaySales)}</td>
-      <td>₹${fromPaise(entry.boxActual)}</td>
-      <td>₹${fromPaise(entry.prevChange)}</td>
-      <td class="${varianceClass}">₹${fromPaise(entry.variance)}</td>
-      <td>₹${fromPaise(entry.leftOver)}</td>
-      <td class="actions">
-        <button class="btn-ghost btn-edit" data-index="${i}" aria-label="Edit entry for ${entry.date}">Edit</button>
-        <button class="btn-danger btn-delete" data-index="${i}" aria-label="Delete entry for ${entry.date}">Delete</button>
+      <td data-label="Date">${entry.date}</td>
+      <td data-label="Today Sales (₹)">₹${fromPaise(entry.todaySales)}</td>
+      <td data-label="Box (₹)">₹${fromPaise(entry.boxActual)}</td>
+      <td data-label="Prev Day Change (₹)">₹${fromPaise(entry.prevChange)}</td>
+      <td data-label="More or Less (₹)" class="${entry.variance > 0 ? 'variance-positive' : entry.variance < 0 ? 'variance-negative' : ''}">₹${fromPaise(entry.variance)}</td>
+      <td data-label="Next Day Change (₹)">₹${fromPaise(entry.leftOver)}</td>
+      <td data-label="Actions">
+        <button class="btn-ghost btn-edit" data-index="${i}">Edit</button>
+        <button class="btn-danger btn-delete" data-index="${i}">Delete</button>
       </td>
     `;
     els.salesTableBody.appendChild(tr);
-     updateMonthlySales();
-     renderMonthlySalesChart();
   });
-  
 
   els.totalSales.textContent = `₹${fromPaise(totalSalesPaise)}`;
   els.totalBox.textContent = `₹${fromPaise(totalBoxPaise)}`;
 
   document.querySelectorAll('.btn-edit').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const idx = +e.target.dataset.index;
-      loadEntryForEdit(idx);
-    });
+    btn.addEventListener('click', e => loadEntryForEdit(parseInt(btn.dataset.index, 10)));
   });
   document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const idx = +e.target.dataset.index;
-      deleteEntry(idx);
-    });
+    btn.addEventListener('click', e => deleteEntry(parseInt(btn.dataset.index, 10)));
   });
+
+  renderDailySalesChart();
+  updateMonthlySales();
 }
 
-function loadEntryForEdit(index){
+// Edit & Delete
+function loadEntryForEdit(index) {
   const e = entries[index];
   els.date.value = e.date;
   els.prevChange.value = fromPaise(e.prevChange);
@@ -314,24 +271,26 @@ function loadEntryForEdit(index){
   els.saveBtn.textContent = 'Update Entry';
   els.status.textContent = `Editing entry for ${e.date}`;
   els.status.className = 'status warn';
-}
+  lastChanged = null;
 
-function deleteEntry(index){
-  if(confirm(`Delete entry for ${entries[index].date}?`)){
-    entries.splice(index,1);
-    if(editIndex === index) {
-      els.resetBtn.click();
-    } else if (editIndex > index) {
-      editIndex--;
-    }
+  // Switch to Home tab for editing
+  tabs.forEach(t => t.classList.remove('active'));
+  contents.forEach(c => c.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="home"]').classList.add('active');
+  document.getElementById('home').classList.add('active');
+}
+function deleteEntry(index) {
+  if (confirm(`Delete entry for ${entries[index].date}?`)) {
+    entries.splice(index, 1);
     saveToLocalStorage();
     renderTable();
     setPrevChangeFromLastEntry();
   }
 }
 
+// Save Entry
 els.saveBtn.addEventListener('click', () => {
-  if(!validateAndCalc()) return;
+  if (!validateAndCalc()) return;
 
   const entry = {
     date: els.date.value,
@@ -344,171 +303,105 @@ els.saveBtn.addEventListener('click', () => {
     variance: toPaise(els.variance.value),
   };
 
-  if(editIndex >= 0){
+  if (editIndex >= 0) {
     entries[editIndex] = entry;
-    els.status.textContent = `Entry updated for ${entry.date}`;
+    els.status.textContent = 'Entry updated.';
   } else {
     entries.push(entry);
-    els.status.textContent = `Entry saved for ${entry.date}`;
+    els.status.textContent = 'Entry saved.';
   }
   els.status.className = 'status ok';
 
   saveToLocalStorage();
   renderTable();
-
   setPrevChangeFromLastEntry();
 
   document.getElementById('saleForm').reset();
   setPrevChangeFromLastEntry();
-
   els.leftOver.value = els.expectedBox.value = els.variance.value = '';
   editIndex = -1;
   els.saveBtn.textContent = 'Save Entry';
-  
 });
 
-
-// Initialize on page load
-loadFromLocalStorage();
-renderTable();
+// Monthly sales update
 function updateMonthlySales() {
-  console.log('updateMonthlySales running');
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
-
   let totalSalesPaise = 0;
 
   entries.forEach(entry => {
-    const entryDate = new Date(entry.date);
-    console.log('Entry:', entry.date, entryDate, entry.todaySales);
-    if (entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear) {
+    const [y, m] = entry.date.split('-');
+    if (parseInt(y, 10) === currentYear && parseInt(m, 10) === currentMonth + 1) {
       totalSalesPaise += entry.todaySales;
     }
   });
 
-  const formatted = fromPaise(totalSalesPaise) || '0.00';
-  console.log('Monthly sales total:', formatted);
-
-  const monthlyElem = document.getElementById('monthlySalesAmount');
-  if (monthlyElem) {
-    monthlyElem.textContent = `₹${formatted}`;
-  } else {
-    console.error('#monthlySalesAmount element not found');
+  const formatted = fromPaise(totalSalesPaise) || '0';
+  if (els.monthlySalesAmount) {
+    els.monthlySalesAmount.textContent = `₹${formatted}`;
   }
-    updateMonthlySales();
 }
 
-setTodayAndPrevChange();
-validateAndCalc();
-const exportCsvBtn = document.getElementById('exportCsvBtn');
-const importCsvBtn = document.getElementById('importCsvBtn');
-const importCsvInput = document.getElementById('importCsvInput');
-
-// Utility: Convert entries array to CSV string
+// CSV Export/Import
 function entriesToCSV(data) {
-  const headers = ["date","todaySales","boxActual","prevChange","takenSaving","leftOver","expectedBox","variance"];
-  const rows = data.map(entry => headers.map(h => {
-    // Convert paise integers back to string like "1234.56"
-    if (typeof entry[h] === 'number') {
-      return (entry[h]/100).toFixed(2);
-    }
-    return entry[h] ?? '';
-  }).join(','));
+  const headers = ["date", "todaySales", "boxActual", "prevChange", "takenSaving", "leftOver", "expectedBox", "variance"];
+  const rows = data.map(entry => headers.map(h => entry[h]).join(','));
   return headers.join(',') + '\n' + rows.join('\n');
-  updateMonthlySales();
 }
-
-// Utility: Parse CSV string to entries array
 function csvToEntries(csvStr) {
   const lines = csvStr.trim().split(/\r?\n/);
   const headers = lines.shift().split(',');
   return lines.map(line => {
-    const values = line.split(',');
-    const entry = {};
-    headers.forEach((h,i) => {
-      if (["todaySales","boxActual","prevChange","takenSaving","leftOver","expectedBox","variance"].includes(h)) {
-        // Convert string amount to paise integer
-        entry[h] = Math.round(parseFloat(values[i] || '0') * 100);
-      } else {
-        entry[h] = values[i];
-      }
+    const vals = line.split(',');
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = h === 'date' ? vals[i] : parseInt(vals[i], 10) || 0;
     });
-    return entry;
+    return obj;
   });
 }
 
 // Export CSV
-exportCsvBtn.addEventListener('click', () => {
+els.exportCsvBtn.addEventListener('click', () => {
   const csvData = entriesToCSV(entries);
-  const blob = new Blob([csvData], {type: 'text/csv'});
+  const blob = new Blob([csvData], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement('a');
   a.href = url;
-  a.download = `sales_data_${new Date().toISOString().slice(0,10)}.csv`;
+  a.download = `sales_data_${new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 });
 
-// Import CSV
-importCsvBtn.addEventListener('click', () => {
-  importCsvInput.value = '';
-  importCsvInput.click();
+// Import CSV with preview
+els.importCsvBtn.addEventListener('click', () => {
+  els.importCsvInput.value = '';
+  els.importCsvInput.click();
 });
-
-importCsvInput.addEventListener('change', e => {
-  const importPreviewContainer = document.getElementById('importPreviewContainer');
-const importPreviewTable = document.getElementById('importPreviewTable');
-const confirmImportBtn = document.getElementById('confirmImportBtn');
-const cancelImportBtn = document.getElementById('cancelImportBtn');
-const backupReminder = document.getElementById('backupReminder');
-
-let importedEntriesTemp = null; // temp store for previewed data
-
-// Updated CSV import input listener
-importCsvInput.addEventListener('change', e => {
+els.importCsvInput.addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
-  reader.onload = function(event) {
+  reader.onload = function (event) {
     try {
-      const importedEntries = csvToEntries(event.target.result);
-
-      if (!Array.isArray(importedEntries)) throw new Error('Invalid CSV format');
-      if(importedEntries.length === 0) throw new Error('CSV file is empty');
-
-      // Save to temp var instead of immediately loading
-      importedEntriesTemp = importedEntries;
-
-      // Show preview
-      showCSVPreview(importedEntriesTemp);
-
-      // Show the preview container and buttons
-      importPreviewContainer.style.display = 'block';
-
-      els.status.textContent = `Previewing ${importedEntries.length} entries. Confirm import or cancel.`;
-      els.status.className = 'status warn';
-
+      const imported = csvToEntries(event.target.result);
+      importedEntriesTemp = imported;
+      showCSVPreview(imported);
+      els.importPreviewContainer.style.display = 'block';
+      els.backupReminder.style.display = 'block';
     } catch (err) {
-      els.status.textContent = 'Error importing CSV: ' + err.message;
-      els.status.className = 'status err';
+      alert('Invalid CSV file.');
     }
   };
   reader.readAsText(file);
 });
-
-// Function to create preview table
 function showCSVPreview(data) {
-  // Clear table
-  importPreviewTable.innerHTML = '';
-
-  if(data.length === 0) return;
-
-  // Add headers
+  els.importPreviewTable.innerHTML = '';
+  if (data.length === 0) return;
   const headers = Object.keys(data[0]);
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
@@ -518,208 +411,55 @@ function showCSVPreview(data) {
     headerRow.appendChild(th);
   });
   thead.appendChild(headerRow);
-  importPreviewTable.appendChild(thead);
+  els.importPreviewTable.appendChild(thead);
 
-  // Add rows (limit to 10 for preview)
   const tbody = document.createElement('tbody');
-  data.slice(0,10).forEach(row => {
+  data.slice(0, 10).forEach(row => {
     const tr = document.createElement('tr');
     headers.forEach(h => {
       const td = document.createElement('td');
-      if(typeof row[h] === 'number'){
-        td.textContent = (row[h]/100).toFixed(2);
-      } else {
-        td.textContent = row[h];
-      }
+      td.textContent = h === 'date' ? row[h] : fromPaise(row[h]);
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
   });
-  importPreviewTable.appendChild(tbody);
+  els.importPreviewTable.appendChild(tbody);
 }
-
-// Confirm import
-confirmImportBtn.addEventListener('click', () => {
+els.confirmImportBtn.addEventListener('click', () => {
   if (!importedEntriesTemp) return;
   entries = importedEntriesTemp;
   saveToLocalStorage();
   renderTable();
   setPrevChangeFromLastEntry();
-
-  els.status.textContent = `Imported ${entries.length} entries successfully.`;
-  els.status.className = 'status ok';
-
-  // Hide preview and reset temp
-  importPreviewContainer.style.display = 'none';
+  els.importPreviewContainer.style.display = 'none';
+  els.backupReminder.style.display = 'none';
+  importedEntriesTemp = null;
+});
+els.cancelImportBtn.addEventListener('click', () => {
+  els.importPreviewContainer.style.display = 'none';
+  els.backupReminder.style.display = 'none';
   importedEntriesTemp = null;
 });
 
-// Cancel import
-cancelImportBtn.addEventListener('click', () => {
-  importPreviewContainer.style.display = 'none';
-  importedEntriesTemp = null;
-  els.status.textContent = 'Import canceled.';
-  els.status.className = 'status ok';
-  importCsvInput.value = ''; // Reset file input so user can pick again if needed
-});
-
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    try {
-      const importedEntries = csvToEntries(event.target.result);
-
-      if (!Array.isArray(importedEntries)) throw new Error('Invalid CSV format');
-
-      entries = importedEntries;
-      saveToLocalStorage();
-      renderTable();
-      setPrevChangeFromLastEntry();
-
-      els.status.textContent = `Imported ${entries.length} entries from CSV.`;
-      els.status.className = 'status ok';
-    } catch (err) {
-      els.status.textContent = 'Error importing CSV: ' + err.message;
-      els.status.className = 'status err';
-    }
-  };
-  reader.readAsText(file);
-});
-const importPreviewContainer = document.getElementById('importPreviewContainer');
-const importPreviewTable = document.getElementById('importPreviewTable');
-const confirmImportBtn = document.getElementById('confirmImportBtn');
-const cancelImportBtn = document.getElementById('cancelImportBtn');
-const backupReminder = document.getElementById('backupReminder');
-
-let importedEntriesTemp = null; // temp store for previewed data
-
-// Updated CSV import input listener
-importCsvInput.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    try {
-      const importedEntries = csvToEntries(event.target.result);
-
-      if (!Array.isArray(importedEntries)) throw new Error('Invalid CSV format');
-      if(importedEntries.length === 0) throw new Error('CSV file is empty');
-
-      // Save to temp var instead of immediately loading
-      importedEntriesTemp = importedEntries;
-
-      // Show preview
-      showCSVPreview(importedEntriesTemp);
-
-      // Show the preview container and buttons
-      importPreviewContainer.style.display = 'block';
-
-      els.status.textContent = `Previewing ${importedEntries.length} entries. Confirm import or cancel.`;
-      els.status.className = 'status warn';
-
-    } catch (err) {
-      els.status.textContent = 'Error importing CSV: ' + err.message;
-      els.status.className = 'status err';
-    }
-  };
-  reader.readAsText(file);
-});
-
-// Function to create preview table
-function showCSVPreview(data) {
-  // Clear table
-  importPreviewTable.innerHTML = '';
-
-  if(data.length === 0) return;
-
-  // Add headers
-  const headers = Object.keys(data[0]);
-  const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  headers.forEach(h => {
-    const th = document.createElement('th');
-    th.textContent = h;
-    headerRow.appendChild(th);
-  });
-  thead.appendChild(headerRow);
-  importPreviewTable.appendChild(thead);
-
-  // Add rows (limit to 10 for preview)
-  const tbody = document.createElement('tbody');
-  data.slice(0,10).forEach(row => {
-    const tr = document.createElement('tr');
-    headers.forEach(h => {
-      const td = document.createElement('td');
-      if(typeof row[h] === 'number'){
-        td.textContent = (row[h]/100).toFixed(2);
-      } else {
-        td.textContent = row[h];
-      }
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  });
-  importPreviewTable.appendChild(tbody);
-}
-
-// Confirm import
-confirmImportBtn.addEventListener('click', () => {
-  if (!importedEntriesTemp) return;
-  entries = importedEntriesTemp;
-  renderTable();
-  
-  updateMonthlySales();
-  setPrevChangeFromLastEntry();
-
-
-  els.status.textContent = `Imported ${entries.length} entries successfully.`;
-  els.status.className = 'status ok';
-
-  // Hide preview and reset temp
-  importPreviewContainer.style.display = 'none';
-  importedEntriesTemp = null;
-});
-
-// Cancel import
-cancelImportBtn.addEventListener('click', () => {
-  importPreviewContainer.style.display = 'none';
-  importedEntriesTemp = null;
-  els.status.textContent = 'Import canceled.';
-  els.status.className = 'status ok';
-  importCsvInput.value = ''; // Reset file input so user can pick again if needed
-});
-// Tab system logic
+// Tab system
 const tabs = document.querySelectorAll('.tab-btn');
 const contents = document.querySelectorAll('.tab-content');
-
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
-    // Remove active classes
-    tabs.forEach(t => {
-      t.classList.remove('active');
-      t.setAttribute('aria-selected', 'false');
-    });
+    tabs.forEach(t => t.classList.remove('active'));
     contents.forEach(c => c.classList.remove('active'));
-
-    // Activate clicked tab and content
     tab.classList.add('active');
-    tab.setAttribute('aria-selected', 'true');
-    const target = tab.dataset.tab;
-    document.getElementById(target).classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
   });
 });
+
+// Service worker registration (optional, adjust path if needed)
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(registration => {
-        console.log('Service Worker registered with scope:', registration.scope);
-      })
-      .catch(error => {
-        console.log('Service Worker registration failed:', error);
-      });
-  });
+  navigator.serviceWorker.register('service-worker.js').catch(() => {});
 }
 
+// Init
+loadFromLocalStorage();
+renderTable();
+setTodayAndPrevChange();
+validateAndCalc();
