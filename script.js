@@ -540,36 +540,102 @@ tabs.forEach(tab => {
   });
 });
 
-// --- Firebase Auth Setup ---
+// --- Firebase Auth & Firestore Setup ---
 const firebaseConfig = {
   apiKey: "AIzaSyCZR6kpfRg17DcStAoGDF6PuOaxXcdIpLY",
   authDomain: "quickslip-403a4.firebaseapp.com",
   projectId: "quickslip-403a4",
-  storageBucket: "quickslip-403a4.firebasestorage.app",
+  storageBucket: "quickslip-403a4.appspot.com",
   messagingSenderId: "535666998042",
   appId: "1:535666998042:web:aac21cce82a755448c0aa3",
-  measurementId: "G-401V268YT7" // (optional, for analytics)
+  measurementId: "G-401V268YT7"
 };
-if (typeof firebase === "undefined") {
-  const script = document.createElement('script');
-  script.src = "https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js";
-  script.onload = () => {
-    const authScript = document.createElement('script');
-    authScript.src = "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js";
-    authScript.onload = initFirebaseAuth;
-    document.head.appendChild(authScript);
-  };
-  document.head.appendChild(script);
-} else {
-  initFirebaseAuth();
+
+let firestore = null;
+let userUnsub = null;
+let currentUser = null;
+
+function loadFirebaseDeps(cb) {
+  if (typeof firebase === "undefined") {
+    const script = document.createElement('script');
+    script.src = "https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js";
+    script.onload = () => {
+      const authScript = document.createElement('script');
+      authScript.src = "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js";
+      authScript.onload = () => {
+        const fsScript = document.createElement('script');
+        fsScript.src = "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js";
+        fsScript.onload = cb;
+        document.head.appendChild(fsScript);
+      };
+      document.head.appendChild(authScript);
+    };
+    document.head.appendChild(script);
+  } else {
+    cb();
+  }
 }
+
+loadFirebaseDeps(initFirebaseAuth);
 
 function initFirebaseAuth() {
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   window.firebaseAuth = firebase.auth();
+  firestore = firebase.firestore();
   setupAuthUI();
 }
 
+// --- Firestore Sync Logic ---
+function getUserSalesRef(uid) {
+  return firestore.collection('users').doc(uid).collection('sales');
+}
+
+// Save all entries to Firestore (overwrite)
+function saveEntriesToFirestore(uid, entries) {
+  const ref = getUserSalesRef(uid);
+  // Remove all docs, then add all entries (simple approach)
+  return ref.get().then(snapshot => {
+    const batch = firestore.batch();
+    snapshot.forEach(doc => batch.delete(doc.ref));
+    entries.forEach(entry => {
+      const docRef = ref.doc(entry.date);
+      batch.set(docRef, entry);
+    });
+    return batch.commit();
+  });
+}
+
+// Listen for real-time updates from Firestore
+function listenToUserSales(uid) {
+  if (userUnsub) userUnsub();
+  userUnsub = getUserSalesRef(uid).onSnapshot(snapshot => {
+    const newEntries = [];
+    snapshot.forEach(doc => newEntries.push(doc.data()));
+    // Sort by date ascending
+    newEntries.sort((a, b) => a.date.localeCompare(b.date));
+    entries = newEntries;
+    saveToLocalStorage(); // keep local cache
+    renderTable();
+    setPrevChangeFromLastEntry();
+  });
+}
+
+// Save to Firestore on any change
+function syncToCloud() {
+  if (currentUser && firestore) {
+    saveEntriesToFirestore(currentUser.uid, entries);
+  }
+}
+
+// --- Patch all save points to sync to Firestore ---
+function saveToLocalStorage() {
+  localStorage.setItem('salesEntries', JSON.stringify(entries));
+  syncToCloud();
+}
+
+// --- Patch import, delete, save, etc. to always call saveToLocalStorage (already done) ---
+
+// --- Auth UI ---
 function setupAuthUI() {
   const loginModal = document.getElementById('loginModal');
   const registerModal = document.getElementById('registerModal');
@@ -627,12 +693,20 @@ function setupAuthUI() {
       registerModal.style.display = 'none';
       logoutBtn.style.display = 'block';
       document.body.classList.remove('auth-locked');
-      // Optionally: load user-specific data here
+      currentUser = user;
+      // Sync from Firestore
+      listenToUserSales(user.uid);
     } else {
       loginModal.style.display = 'flex';
       registerModal.style.display = 'none';
       logoutBtn.style.display = 'none';
       document.body.classList.add('auth-locked');
+      currentUser = null;
+      if (userUnsub) userUnsub();
+      entries = [];
+      saveToLocalStorage();
+      renderTable();
+      setPrevChangeFromLastEntry();
     }
   });
 }
