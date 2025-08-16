@@ -731,3 +731,71 @@ setupDashboardMonthPicker();
 renderTable();
 setTodayAndPrevChange();
 validateAndCalc();
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Settings modal logic
+  const openSettingsBtn = document.getElementById('openSettingsBtn');
+  const settingsModal = document.getElementById('settingsModal');
+  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+  openSettingsBtn.addEventListener('click', function() {
+    settingsModal.style.display = 'flex';
+    profileDropdown.style.display = 'none';
+    // Load profile pic if set
+    const pic = localStorage.getItem('profilePicDataUrl');
+    const img = document.getElementById('profilePicImg');
+    const def = document.getElementById('profilePicDefault');
+    if (pic) {
+      img.src = pic;
+      img.style.display = '';
+      def.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      def.style.display = '';
+    }
+    // Clear status
+    const status = document.getElementById('profilePicStatus');
+    if (status) status.textContent = '';
+    // Clear file input
+    const input = document.getElementById('profilePicInput');
+    if (input) input.value = '';
+  });
+  closeSettingsBtn.addEventListener('click', function() {
+    settingsModal.style.display = 'none';
+  });
+
+  // Profile picture change logic (UI only, localStorage)
+  let profilePicTempDataUrl = null;
+  const profilePicInput = document.getElementById('profilePicInput');
+  profilePicInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      profilePicTempDataUrl = e.target.result;
+      const img = document.getElementById('profilePicImg');
+      const def = document.getElementById('profilePicDefault');
+      img.src = e.target.result;
+      img.style.display = '';
+      def.style.display = 'none';
+      // Show preview, but not save yet
+      const status = document.getElementById('profilePicStatus');
+      if (status) status.textContent = 'Preview only. Click Save to apply.';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Save profile picture button
+  const saveProfilePicBtn = document.getElementById('saveProfilePicBtn');
+  saveProfilePicBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    const status = document.getElementById('profilePicStatus');
+    if (profilePicTempDataUrl) {
+      localStorage.setItem('profilePicDataUrl', profilePicTempDataUrl);
+      if (status) status.textContent = 'Profile picture saved!';
+      profilePicTempDataUrl = null;
+    } else {
+      if (status) status.textContent = 'Please select a picture first.';
+    }
+  });
+
+});
