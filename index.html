@@ -41,35 +41,15 @@
         </div>
       </form>
     </div>
+    <!-- Logout Button -->
+    <button id="logoutBtn" class="btn-ghost" style="position:fixed;top:18px;right:18px;z-index:1000;display:none;">Logout</button>
 
-    <!-- Profile/Account Button (top right) -->
-    <div id="profileMenuContainer" style="position:fixed;top:18px;right:18px;z-index:2000;">
-      <button id="profileBtn" aria-haspopup="true" aria-expanded="false" style="background:none;border:none;cursor:pointer;padding:0;">
-        <span id="profileBtnPic" style="display:inline-block;width:38px;height:38px;border-radius:50%;overflow:hidden;background:#222;vertical-align:middle;pointer-events:auto;">
-          <img id="profileBtnImg" src="" alt="Profile" style="width:100%;height:100%;object-fit:cover;display:none;pointer-events:none;">
-          <svg id="profileBtnDefault" width="38" height="38" viewBox="0 0 48 48" fill="none" aria-label="Account" style="display:block;pointer-events:none;">
-            <circle cx="24" cy="24" r="22" stroke="#7aa2f7" stroke-width="2" fill="#222"/>
-            <circle cx="24" cy="20" r="8" fill="#7aa2f7" opacity="0.7"/>
-            <ellipse cx="24" cy="34" rx="12" ry="7" fill="#7aa2f7" opacity="0.2"/>
-          </svg>
-        </span>
-      </button>
-      <div id="profileDropdown" style="display:none;position:absolute;right:0;top:44px;background:#222;border-radius:10px;box-shadow:0 4px 16px #000a;padding:0;min-width:180px;">
-        <button id="openSettingsBtn" style="width:100%;text-align:left;padding:12px 18px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;border-bottom:1px solid #333;">
-          ⚙️ Settings
-        </button>
-        <button id="logoutBtn" class="btn-ghost" style="width:100%;text-align:left;padding:12px 18px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;">
-          🚪 Logout
-        </button>
-      </div>
-    </div>
-
+    <!-- Existing content... -->
     <nav class="tab-bar" role="tablist" aria-label="Main navigation tabs">
       <button class="tab-btn active" data-tab="home" role="tab" aria-selected="true" aria-controls="home">Home</button>
       <button class="tab-btn" data-tab="dashboard" role="tab" aria-selected="false" aria-controls="dashboard">Dashboard</button>
       <button class="tab-btn" data-tab="reports" role="tab" aria-selected="false" aria-controls="reports">Reports</button>
-      <!-- Removed Settings tab -->
-      <!-- <button class="tab-btn" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings">Settings</button> -->
+      <button class="tab-btn" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings">Settings</button>
     </nav>
 
     <!-- Home Tab -->
@@ -233,195 +213,14 @@
 
     </section>
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;">
-      <section style="background:#222;color:#fff;padding:32px 24px;border-radius:12px;min-width:320px;box-shadow:0 8px 32px #000a;display:flex;flex-direction:column;gap:16px;max-width:90vw;">
-        <h2 style="margin:0 0 8px 0;color:#7aa2f7;">Settings</h2>
-        <div style="margin-bottom:18px;">
-          <h3 style="margin:0 0 8px 0;font-size:18px;color:#7aa2f7;">Customize Preferences</h3>
-          <div style="display:flex;align-items:center;gap:18px;">
-            <div id="profilePicPreview" style="width:60px;height:60px;border-radius:50%;background:#333;overflow:hidden;display:flex;align-items:center;justify-content:center;">
-              <img id="profilePicImg" src="" alt="Profile Picture" style="width:100%;height:100%;object-fit:cover;display:none;">
-              <svg id="profilePicDefault" width="38" height="38" viewBox="0 0 48 48" fill="none" aria-label="Account" style="display:block;">
-                <circle cx="24" cy="24" r="22" stroke="#7aa2f7" stroke-width="2" fill="#222"/>
-                <circle cx="24" cy="20" r="8" fill="#7aa2f7" opacity="0.7"/>
-                <ellipse cx="24" cy="34" rx="12" ry="7" fill="#7aa2f7" opacity="0.2"/>
-              </svg>
-            </div>
-            <div>
-              <label for="profilePicInput" style="font-size:15px;color:#aaa;">Change account picture</label><br>
-              <input type="file" id="profilePicInput" accept="image/*" style="margin-top:6px;">
-              <button id="saveProfilePicBtn" class="btn-primary" style="margin-top:8px;">Save</button>
-              <div id="profilePicStatus" style="font-size:13px;color:#7aa2f7;margin-top:4px;min-height:18px;"></div>
-            </div>
-          </div>
-        </div>
-        <div style="margin-bottom:18px;">
-          <h3 style="margin:0 0 8px 0;font-size:18px;color:#7aa2f7;">Theme</h3>
-          <div id="themeRadioGroup" style="display:flex;gap:18px;align-items:center;">
-            <label style="display:flex;align-items:center;gap:6px;font-size:15px;">
-              <input type="radio" name="theme" id="themeRadioLight" value="light">
-              <span>Light</span>
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:15px;">
-              <input type="radio" name="theme" id="themeRadioDark" value="dark">
-              <span>Dark</span>
-            </label>
-          </div>
-        </div>
-        <p>Coming soon: Backup options.</p>
-        <button id="closeSettingsBtn" class="btn-ghost" style="margin-top:12px;">Close</button>
-      </section>
-    </div>
+    <!-- Settings Tab -->
+    <section id="settings" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="settings-tab" style="color: var(--accent); padding: 10px;">
+      <h2>Settings</h2>
+      <p>Coming soon: Customize preferences, theme toggle, backup options.</p>
+    </section>
 
   </div>
 
   <script src="script.js"></script>
-  <script>
-    // --- Tab persistence logic ---
-    document.addEventListener('DOMContentLoaded', function () {
-      // Restore last tab
-      const lastTab = localStorage.getItem('activeTab');
-      if (lastTab) {
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-          btn.classList.toggle('active', btn.dataset.tab === lastTab);
-          btn.setAttribute('aria-selected', btn.dataset.tab === lastTab ? 'true' : 'false');
-        });
-        document.querySelectorAll('.tab-content').forEach(sec => {
-          sec.classList.toggle('active', sec.id === lastTab);
-        });
-      }
-
-      // Save tab on click
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-          localStorage.setItem('activeTab', btn.dataset.tab);
-        });
-      });
-
-      // Profile dropdown logic
-      const profileBtn = document.getElementById('profileBtn');
-      const profileDropdown = document.getElementById('profileDropdown');
-      profileBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const show = profileDropdown.style.display !== 'block';
-        profileDropdown.style.display = show ? 'block' : 'none';
-        profileBtn.setAttribute('aria-expanded', show ? 'true' : 'false');
-      });
-      // Hide dropdown on click outside
-      document.addEventListener('click', function(e) {
-        if (!profileDropdown.contains(e.target) && e.target !== profileBtn) {
-          profileDropdown.style.display = 'none';
-          profileBtn.setAttribute('aria-expanded', 'false');
-        }
-      });
-
-      // Settings modal logic
-      const openSettingsBtn = document.getElementById('openSettingsBtn');
-      const settingsModal = document.getElementById('settingsModal');
-      const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-      openSettingsBtn.addEventListener('click', function() {
-        settingsModal.style.display = 'flex';
-        profileDropdown.style.display = 'none';
-        // Load profile pic if set
-        const pic = localStorage.getItem('profilePicDataUrl');
-        const img = document.getElementById('profilePicImg');
-        const def = document.getElementById('profilePicDefault');
-        if (pic) {
-          img.src = pic;
-          img.style.display = '';
-          def.style.display = 'none';
-        } else {
-          img.style.display = 'none';
-          def.style.display = '';
-        }
-      });
-      closeSettingsBtn.addEventListener('click', function() {
-        settingsModal.style.display = 'none';
-      });
-
-      // Profile picture change logic (UI only, localStorage)
-      const profilePicInput = document.getElementById('profilePicInput');
-      profilePicInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          localStorage.setItem('profilePicDataUrl', e.target.result);
-          const img = document.getElementById('profilePicImg');
-          const def = document.getElementById('profilePicDefault');
-          img.src = e.target.result;
-          img.style.display = '';
-          def.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-      });
-
-      // Profile picture in account tab logic
-      function updateProfileBtnPic() {
-        const pic = localStorage.getItem('profilePicDataUrl');
-        const img = document.getElementById('profileBtnImg');
-        const def = document.getElementById('profileBtnDefault');
-        if (pic) {
-          img.src = pic;
-          img.style.display = '';
-          def.style.display = 'none';
-        } else {
-          img.style.display = 'none';
-          def.style.display = '';
-        }
-      }
-      // Initial load
-      updateProfileBtnPic();
-
-      // Also update when settings modal is opened or profile pic is saved
-      const saveProfilePicBtn = document.getElementById('saveProfilePicBtn');
-      if (saveProfilePicBtn) {
-        saveProfilePicBtn.addEventListener('click', function() {
-          setTimeout(updateProfileBtnPic, 100); // update after save
-        });
-      }
-
-      // Theme radio logic
-      function setTheme(theme) {
-        if (theme === 'light') {
-          document.body.classList.add('light-theme');
-          localStorage.setItem('theme', 'light');
-        } else {
-          document.body.classList.remove('light-theme');
-          localStorage.setItem('theme', 'dark');
-        }
-      }
-      function updateThemeRadios() {
-        const isLight = document.body.classList.contains('light-theme');
-        document.getElementById('themeRadioLight').checked = isLight;
-        document.getElementById('themeRadioDark').checked = !isLight;
-      }
-      // On load, set theme from localStorage
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme === 'light') {
-        document.body.classList.add('light-theme');
-      }
-      // Update radios on modal open
-      if (openSettingsBtn) {
-        openSettingsBtn.addEventListener('click', function() {
-          // ...existing code...
-          updateThemeRadios();
-        });
-      }
-      // Theme radio events
-      document.getElementById('themeRadioLight').addEventListener('change', function() {
-        if (this.checked) setTheme('light');
-      });
-      document.getElementById('themeRadioDark').addEventListener('change', function() {
-        if (this.checked) setTheme('dark');
-      });
-    });
-    // Make profileBtnPic clickable by forwarding click to profileBtn
-    document.getElementById('profileBtnPic').addEventListener('click', function(e) {
-      e.stopPropagation();
-      document.getElementById('profileBtn').click();
-    });
-  </script>
 </body>
 </html>
