@@ -47,9 +47,10 @@ const els = {
 
 let entries = [];
 let editIndex = -1;
-let dailySalesChart = null; // rename for clarity
+let dailySalesChart = null; // now used for line chart only
 let importedEntriesTemp = null;
 let lastChanged = null; // Track which field was last changed: 'saving' or 'leftOver'
+let dashboardMonth = null; // {year, month} for dashboard chart
 
 // LocalStorage
 function saveToLocalStorage() {
@@ -166,42 +167,93 @@ els.resetBtn.addEventListener('click', () => {
   lastChanged = null;
 });
 
-// Chart rendering: show daily sales for current month
-function renderDailySalesChart() {
+// Set up month picker for dashboard
+function setupDashboardMonthPicker() {
+  const monthInput = document.getElementById('dashboardMonth');
+  if (!monthInput) return;
+  // Set default to current month
   const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth(); // 0-based
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  monthInput.value = ym;
+  dashboardMonth = { year: now.getFullYear(), month: now.getMonth() + 1 };
+  monthInput.addEventListener('change', () => {
+    const [y, m] = monthInput.value.split('-').map(Number);
+    dashboardMonth = { year: y, month: m };
+    renderDailySalesChart();
+    updateMonthlySales();
+  });
+}
+
+// Chart rendering: show daily sales for selected month
+function renderDailySalesChart() {
+  // Use dashboardMonth if set, else current month
+  let year, month;
+  if (dashboardMonth && dashboardMonth.year && dashboardMonth.month) {
+    year = dashboardMonth.year;
+    month = dashboardMonth.month;
+  } else {
+    const now = new Date();
+    year = now.getFullYear();
+    month = now.getMonth() + 1;
+  }
+  const daysInMonth = new Date(year, month, 0).getDate();
 
   // Prepare daily sales array
   const salesByDay = new Array(daysInMonth).fill(0);
 
   entries.forEach(entry => {
     const [y, m, d] = entry.date.split('-').map(Number);
-    if (y === currentYear && m === currentMonth + 1) {
-      // day is 1-based, so subtract 1 for array index
+    if (y === year && m === month) {
       salesByDay[d - 1] += entry.todaySales;
     }
   });
 
-  // No decimals
   const salesInRupees = salesByDay.map(val => val);
   const dayLabels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
-  const ctx = document.getElementById('monthlySalesChart').getContext('2d');
 
+  // Plugin to draw label at the last point
+  const endLabelPlugin = {
+    id: 'endLabelPlugin',
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      const dataset = chart.data.datasets[0];
+      if (!dataset || !dataset.data.length) return;
+      const meta = chart.getDatasetMeta(0);
+      const lastIndex = dataset.data.length - 1;
+      const point = meta.data[lastIndex];
+      if (!point) return;
+      const value = dataset.data[lastIndex];
+      ctx.save();
+      ctx.font = 'bold 14px Inter, Arial, sans-serif';
+      ctx.fillStyle = '#7aa2f7';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      const label = `₹${value.toLocaleString('en-IN')}`;
+      ctx.fillText(label, point.x + 8, point.y - 12);
+      ctx.restore();
+    }
+  };
+
+  // Line chart (replace bar chart)
+  const ctxLine = document.getElementById('monthlySalesChart').getContext('2d');
   if (dailySalesChart) {
     dailySalesChart.data.labels = dayLabels;
     dailySalesChart.data.datasets[0].data = salesInRupees;
     dailySalesChart.update();
   } else {
-    dailySalesChart = new Chart(ctx, {
-      type: 'bar',
+    dailySalesChart = new Chart(ctxLine, {
+      type: 'line',
       data: {
         labels: dayLabels,
         datasets: [{
           label: 'Daily Sales (₹)',
           data: salesInRupees,
-          backgroundColor: '#7aa2f7',
+          fill: false,
+          backgroundColor: "rgba(0,0,255,1.0)",
+          borderColor: "rgba(0,0,255,0.7)",
+          tension: 0.2,
+          pointRadius: 3,
+          pointBackgroundColor: "#7aa2f7"
         }]
       },
       options: {
@@ -211,8 +263,33 @@ function renderDailySalesChart() {
           x: { title: { display: true, text: 'Day of Month' } },
           y: { title: { display: true, text: 'Sales (₹)' }, beginAtZero: true, ticks: { precision: 0 } }
         }
-      }
+      },
+      plugins: [endLabelPlugin]
     });
+  }
+}
+
+// Monthly sales update (for selected month)
+function updateMonthlySales() {
+  let year, month;
+  if (dashboardMonth && dashboardMonth.year && dashboardMonth.month) {
+    year = dashboardMonth.year;
+    month = dashboardMonth.month;
+  } else {
+    const now = new Date();
+    year = now.getFullYear();
+    month = now.getMonth() + 1;
+  }
+  let totalSalesPaise = 0;
+  entries.forEach(entry => {
+    const [y, m] = entry.date.split('-');
+    if (parseInt(y, 10) === year && parseInt(m, 10) === month) {
+      totalSalesPaise += entry.todaySales;
+    }
+  });
+  const formatted = fromPaise(totalSalesPaise) || '0';
+  if (els.monthlySalesAmount) {
+    els.monthlySalesAmount.textContent = `₹${formatted}`;
   }
 }
 
@@ -251,7 +328,7 @@ function renderTable() {
     btn.addEventListener('click', e => deleteEntry(parseInt(btn.dataset.index, 10)));
   });
 
-  renderDailySalesChart();
+  renderDailySalesChart(); // always use the dashboardMonth
   updateMonthlySales();
 }
 
@@ -325,14 +402,20 @@ els.saveBtn.addEventListener('click', () => {
 
 // Monthly sales update
 function updateMonthlySales() {
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
+  let year, month;
+  if (dashboardMonth && dashboardMonth.year && dashboardMonth.month) {
+    year = dashboardMonth.year;
+    month = dashboardMonth.month;
+  } else {
+    const now = new Date();
+    year = now.getFullYear();
+    month = now.getMonth() + 1;
+  }
   let totalSalesPaise = 0;
 
   entries.forEach(entry => {
     const [y, m] = entry.date.split('-');
-    if (parseInt(y, 10) === currentYear && parseInt(m, 10) === currentMonth + 1) {
+    if (parseInt(y, 10) === year && parseInt(m, 10) === month) {
       totalSalesPaise += entry.todaySales;
     }
   });
@@ -379,16 +462,12 @@ els.exportCsvBtn.addEventListener('click', () => {
 
 // Import CSV with preview
 els.importCsvBtn.addEventListener('click', () => {
-  // Clear value to allow re-importing the same file on mobile
+  // Always reset value so Android allows picking the same file again
   els.importCsvInput.value = '';
-  // On some mobile browsers, input.click() needs to be in a setTimeout to work reliably
+  // Use a longer timeout for Android reliability
   setTimeout(() => {
     els.importCsvInput.click();
-  }, 100);
-});
-els.importCsvInput.addEventListener('click', (e) => {
-  // For some mobile browsers, force re-creation of the input to ensure file picker opens
-  e.target.value = '';
+  }, 300);
 });
 els.importCsvInput.addEventListener('change', e => {
   const file = e.target.files[0];
@@ -461,46 +540,111 @@ tabs.forEach(tab => {
   });
 });
 
-// Service worker registration (optional, adjust path if needed)
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js').then(reg => {
-    // Listen for updates to the service worker
-    reg.addEventListener('updatefound', () => {
-      const newWorker = reg.installing;
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // New update available, prompt user to reload
-          showUpdateNotification();
-        }
-      });
-    });
-  }).catch(() => {});
+// --- Firebase Auth Setup ---
+const firebaseConfig = {
+  apiKey: "AIzaSyCZR6kpfRg17DcStAoGDF6PuOaxXcdIpLY",
+  authDomain: "quickslip-403a4.firebaseapp.com",
+  projectId: "quickslip-403a4",
+  storageBucket: "quickslip-403a4.firebasestorage.app",
+  messagingSenderId: "535666998042",
+  appId: "1:535666998042:web:aac21cce82a755448c0aa3",
+  measurementId: "G-401V268YT7" // (optional, for analytics)
+};
+if (typeof firebase === "undefined") {
+  const script = document.createElement('script');
+  script.src = "https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js";
+  script.onload = () => {
+    const authScript = document.createElement('script');
+    authScript.src = "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js";
+    authScript.onload = initFirebaseAuth;
+    document.head.appendChild(authScript);
+  };
+  document.head.appendChild(script);
+} else {
+  initFirebaseAuth();
 }
 
-// Show update notification and reload button
-function showUpdateNotification() {
-  let notif = document.getElementById('pwaUpdateNotif');
-  if (!notif) {
-    notif = document.createElement('div');
-    notif.id = 'pwaUpdateNotif';
-    notif.style.position = 'fixed';
-    notif.style.bottom = '24px';
-    notif.style.left = '50%';
-    notif.style.transform = 'translateX(-50%)';
-    notif.style.background = '#222';
-    notif.style.color = '#fff';
-    notif.style.padding = '16px 24px';
-    notif.style.borderRadius = '8px';
-    notif.style.boxShadow = '0 2px 12px #0008';
-    notif.style.zIndex = '9999';
-    notif.innerHTML = 'A new version is available. <button id="reloadPwaBtn" style="margin-left:12px;padding:6px 16px;border-radius:5px;border:none;background:#7aa2f7;color:#fff;font-weight:600;cursor:pointer;">Reload</button>';
-    document.body.appendChild(notif);
-    document.getElementById('reloadPwaBtn').onclick = () => window.location.reload(true);
-  }
+function initFirebaseAuth() {
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  window.firebaseAuth = firebase.auth();
+  setupAuthUI();
 }
+
+function setupAuthUI() {
+  const loginModal = document.getElementById('loginModal');
+  const registerModal = document.getElementById('registerModal');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const loginError = document.getElementById('loginError');
+  const registerError = document.getElementById('registerError');
+  const showRegister = document.getElementById('showRegister');
+  const showLogin = document.getElementById('showLogin');
+
+  function showLoginModal() {
+    loginModal.style.display = 'flex';
+    registerModal.style.display = 'none';
+  }
+  function showRegisterModal() {
+    loginModal.style.display = 'none';
+    registerModal.style.display = 'flex';
+  }
+  showRegister.onclick = (e) => { e.preventDefault(); showRegisterModal(); };
+  showLogin.onclick = (e) => { e.preventDefault(); showLoginModal(); };
+
+  loginForm.onsubmit = function(e) {
+    e.preventDefault();
+    loginError.textContent = '';
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    firebaseAuth.signInWithEmailAndPassword(email, password)
+      .catch(err => { loginError.textContent = err.message; });
+  };
+  registerForm.onsubmit = function(e) {
+    e.preventDefault();
+    registerError.textContent = '';
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    firebaseAuth.createUserWithEmailAndPassword(email, password)
+      .catch(err => { registerError.textContent = err.message; });
+  };
+  logoutBtn.onclick = function() {
+    firebaseAuth.signOut();
+  };
+
+  firebaseAuth.onAuthStateChanged(user => {
+    if (user) {
+      loginModal.style.display = 'none';
+      registerModal.style.display = 'none';
+      logoutBtn.style.display = 'block';
+      document.body.classList.remove('auth-locked');
+      // Optionally: load user-specific data here
+    } else {
+      loginModal.style.display = 'flex';
+      registerModal.style.display = 'none';
+      logoutBtn.style.display = 'none';
+      document.body.classList.add('auth-locked');
+    }
+  });
+}
+
+// Prevent app interaction if not logged in
+(function lockUIUntilLogin() {
+  const style = document.createElement('style');
+  style.innerHTML = `
+    body.auth-locked .container > *:not(#loginModal):not(#registerModal):not(#logoutBtn) {
+      pointer-events: none;
+      filter: blur(2px) grayscale(0.5);
+      user-select: none;
+      opacity: 0.5;
+    }
+  `;
+  document.head.appendChild(style);
+})();
 
 // Init
 loadFromLocalStorage();
+setupDashboardMonthPicker();
 renderTable();
 setTodayAndPrevChange();
 validateAndCalc();

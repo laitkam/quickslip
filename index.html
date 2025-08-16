@@ -14,6 +14,36 @@
 <body>
   <div class="container">
 
+    <!-- Login Modal -->
+    <div id="loginModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
+      <form id="loginForm" style="background:#222; color:#fff; padding:32px 24px; border-radius:12px; min-width:320px; box-shadow:0 8px 32px #000a; display:flex; flex-direction:column; gap:16px;">
+        <h2 style="margin:0 0 8px 0; color:#7aa2f7;">Login</h2>
+        <input id="loginEmail" type="email" placeholder="Email" required style="padding:10px; border-radius:6px; border:1px solid #444;">
+        <input id="loginPassword" type="password" placeholder="Password" required style="padding:10px; border-radius:6px; border:1px solid #444;">
+        <div id="loginError" style="color:#e06c75; min-height:18px; font-size:14px;"></div>
+        <button type="submit" class="btn-primary" style="margin-top:8px;">Login</button>
+        <div style="font-size:13px; color:#aaa;">
+          No account? <a href="#" id="showRegister" style="color:#7aa2f7;">Register</a>
+        </div>
+      </form>
+    </div>
+    <!-- Register Modal -->
+    <div id="registerModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
+      <form id="registerForm" style="background:#222; color:#fff; padding:32px 24px; border-radius:12px; min-width:320px; box-shadow:0 8px 32px #000a; display:flex; flex-direction:column; gap:16px;">
+        <h2 style="margin:0 0 8px 0; color:#7aa2f7;">Register</h2>
+        <input id="registerEmail" type="email" placeholder="Email" required style="padding:10px; border-radius:6px; border:1px solid #444;">
+        <input id="registerPassword" type="password" placeholder="Password" required style="padding:10px; border-radius:6px; border:1px solid #444;">
+        <div id="registerError" style="color:#e06c75; min-height:18px; font-size:14px;"></div>
+        <button type="submit" class="btn-primary" style="margin-top:8px;">Register</button>
+        <div style="font-size:13px; color:#aaa;">
+          Already have an account? <a href="#" id="showLogin" style="color:#7aa2f7;">Login</a>
+        </div>
+      </form>
+    </div>
+    <!-- Logout Button -->
+    <button id="logoutBtn" class="btn-ghost" style="position:fixed;top:18px;right:18px;z-index:1000;display:none;">Logout</button>
+
+    <!-- Existing content... -->
     <nav class="tab-bar" role="tablist" aria-label="Main navigation tabs">
       <button class="tab-btn active" data-tab="home" role="tab" aria-selected="true" aria-controls="home">Home</button>
       <button class="tab-btn" data-tab="dashboard" role="tab" aria-selected="false" aria-controls="dashboard">Dashboard</button>
@@ -110,12 +140,16 @@
     <!-- Dashboard Tab -->
     <section id="dashboard" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="dashboard-tab" style="color: var(--accent);">
       <h2>Daily Sales This Month</h2>
+      <div style="margin-bottom: 12px;">
+        <label for="dashboardMonth" style="font-weight:600;">Select Month:</label>
+        <input type="month" id="dashboardMonth" style="margin-left:10px; padding:4px 8px; border-radius:5px; border:1px solid #7aa2f7; background:#282c34; color:var(--accent); font-weight:600;">
+      </div>
       <div>
         <strong>Total Sales This Month: </strong>
         <span id="monthlySalesAmount">₹0.00</span>
       </div>
       <section id="chartSection" style="margin-top:20px; height: 300px;">
-        <canvas id="monthlySalesChart" aria-label="Daily sales bar chart"></canvas>
+        <canvas id="monthlySalesChart" aria-label="Daily sales line chart"></canvas>
       </section>
     </section>
 
