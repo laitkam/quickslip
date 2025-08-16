@@ -542,7 +542,7 @@ tabs.forEach(tab => {
 
 // --- Firebase Auth Setup ---
 const firebaseConfig = {
-  apiKey: "AIzaSyCZR6kpfRg17DcStAoGDF6PuOaxXcdIpLY",
+  apiKey: "",
   authDomain: "quickslip-403a4.firebaseapp.com",
   projectId: "quickslip-403a4",
   storageBucket: "quickslip-403a4.firebasestorage.app",
