@@ -542,7 +542,7 @@ tabs.forEach(tab => {
 
 // --- Firebase Auth Setup ---
 const firebaseConfig = {
-  apiKey: "",
+  apiKey: "AIzaSyCZR6kpfRg17DcStAoGDF6PuOaxXcdIpLY",
   authDomain: "quickslip-403a4.firebaseapp.com",
   projectId: "quickslip-403a4",
   storageBucket: "quickslip-403a4.firebasestorage.app",
@@ -580,6 +580,7 @@ function setupAuthUI() {
   const registerError = document.getElementById('registerError');
   const showRegister = document.getElementById('showRegister');
   const showLogin = document.getElementById('showLogin');
+  const googleSignInBtn = document.getElementById('googleSignInBtn');
 
   function showLoginModal() {
     loginModal.style.display = 'flex';
@@ -610,6 +611,14 @@ function setupAuthUI() {
   };
   logoutBtn.onclick = function() {
     firebaseAuth.signOut();
+  };
+
+  googleSignInBtn.onclick = function(e) {
+    e.preventDefault();
+    loginError.textContent = '';
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebaseAuth.signInWithPopup(provider)
+      .catch(err => { loginError.textContent = err.message; });
   };
 
   firebaseAuth.onAuthStateChanged(user => {
