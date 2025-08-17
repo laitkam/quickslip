@@ -64,15 +64,25 @@
       </div>
     </div>
 
-    <!-- REPLACED: move nav + panels into a sidebar layout -->
+    <!-- Mobile drawer toggle button -->
+    <button id="sidebarToggle" type="button" aria-controls="default-sidebar" aria-expanded="false" class="sidebar-toggle">
+      <span class="sr-only">Open sidebar</span>
+      <svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" fill="currentColor">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M2 4.75A.75.75 0 0 1 2.75 4h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 4.75ZM2 15.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 1 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75ZM2 10a.75.75 0 0 1 .75-.75h14.5a.75.75 0 1 1 0 1.5H2.75A.75.75 0 0 1 2 10Z"/>
+      </svg>
+    </button>
+
     <div class="app-layout">
-      <aside class="sidebar">
+      <aside class="sidebar" id="default-sidebar" aria-label="Sidebar">
         <nav class="tab-bar" role="tablist" aria-label="Main navigation tabs" aria-orientation="vertical">
           <button class="tab-btn active" id="home-tab" data-tab="home" role="tab" aria-selected="true" aria-controls="home">Home</button>
           <button class="tab-btn" id="dashboard-tab" data-tab="dashboard" role="tab" aria-selected="false" aria-controls="dashboard">Dashboard</button>
           <button class="tab-btn" id="reports-tab" data-tab="reports" role="tab" aria-selected="false" aria-controls="reports">Reports</button>
         </nav>
       </aside>
+
+      <!-- Backdrop for mobile drawer -->
+      <div id="sidebarBackdrop" class="drawer-backdrop" hidden></div>
 
       <main class="content-area" role="main">
         <!-- Home Tab -->
@@ -305,6 +315,57 @@
         const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         monthInput.value = monthStr;
       }
+    });
+
+    // --- Mobile sidebar drawer logic ---
+    document.addEventListener('DOMContentLoaded', function () {
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const sidebar = document.getElementById('default-sidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+
+      sidebarToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const expanded = sidebarToggle.getAttribute('aria-expanded') === 'true' || false;
+        sidebarToggle.setAttribute('aria-expanded', !expanded);
+        sidebar.classList.toggle('open', !expanded);
+        backdrop.toggleAttribute('hidden', expanded);
+      });
+
+      backdrop.addEventListener('click', function () {
+        sidebarToggle.setAttribute('aria-expanded', 'false');
+        sidebar.classList.remove('open');
+        backdrop.setAttribute('hidden', '');
+      });
+
+      // Close sidebar on Esc or Tab (with focus trap)
+      const focusableSelector = 'button, [href], [tabindex]:not([tabindex="-1"])';
+      function closeSidebar() {
+        sidebarToggle.setAttribute('aria-expanded', 'false');
+        sidebar.classList.remove('open');
+        backdrop.setAttribute('hidden', '');
+        document.removeEventListener('keydown', onKeyDown);
+      }
+      function onKeyDown(e) {
+        if (e.key === 'Escape') {
+          closeSidebar();
+        } else if (e.key === 'Tab') {
+          const focusable = sidebar.querySelectorAll(focusableSelector);
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (e.shiftKey) { // Shift + Tab
+            if (document.activeElement === first) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else { // Tab
+            if (document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      }
+      sidebar.addEventListener('keydown', onKeyDown);
     });
   </script>
 </body>

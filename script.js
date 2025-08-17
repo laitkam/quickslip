@@ -541,6 +541,45 @@ tabs.forEach(tab => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('default-sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const isMobile = () => window.matchMedia('(max-width: 900px)').matches;
+
+  if (!sidebar || !toggleBtn) return;
+
+  function openDrawer() {
+    sidebar.classList.add('is-open');
+    toggleBtn.setAttribute('aria-expanded', 'true');
+    if (backdrop) { backdrop.hidden = false; backdrop.classList.add('show'); }
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDrawer() {
+    sidebar.classList.remove('is-open');
+    toggleBtn.setAttribute('aria-expanded', 'false');
+    if (backdrop) { backdrop.classList.remove('show'); backdrop.hidden = true; }
+    document.body.style.overflow = '';
+  }
+  function toggleDrawer() {
+    if (sidebar.classList.contains('is-open')) closeDrawer(); else openDrawer();
+  }
+
+  toggleBtn.addEventListener('click', toggleDrawer);
+  backdrop?.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) closeDrawer();
+  });
+  window.addEventListener('resize', () => {
+    if (!isMobile()) closeDrawer();
+  });
+
+  // Close drawer when a tab is chosen (on mobile), to show content
+  document.querySelectorAll('.sidebar .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => { if (isMobile()) closeDrawer(); });
+  });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
   const tablist = document.querySelector('.tab-bar[role="tablist"]');
   if (!tablist || tablist.dataset.vnavInit === '1') return;
   tablist.dataset.vnavInit = '1';
