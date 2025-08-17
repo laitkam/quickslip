@@ -570,3 +570,33 @@
   background-position: center;
   pointer-events: none;
 }
+
+/* Sidebar tabs like animejs.com */
+.app-layout { display:flex; gap:0; min-height:100vh; }
+.sidebar {
+	width:220px; background:#1f2329; border-right:1px solid #333;
+	position:sticky; top:0; align-self:flex-start; height:100vh;
+	padding:16px 10px;
+}
+.sidebar .tab-bar { display:flex; flex-direction:column; gap:8px; }
+.sidebar .tab-btn {
+	width:100%; text-align:left; padding:10px 12px; border-radius:8px;
+	background:transparent; border:1px solid transparent; color:#cfd8e3; cursor:pointer;
+}
+.sidebar .tab-btn.active {
+	background:#2b2f36; border-color:#333; color:#fff; box-shadow:inset 3px 0 0 #7aa2f7;
+}
+.content-area { flex:1; padding:16px 16px 48px; overflow:auto; }
+/* Ensure panels toggle correctly even if external CSS differs */
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+/* Mobile: fall back to top bar */
+@media (max-width: 900px) {
+	.app-layout { display:block; }
+	.sidebar {
+		position:static; width:auto; height:auto; background:transparent; border-right:none; padding:0 0 12px;
+	}
+	.sidebar .tab-bar { flex-direction:row; gap:8px; }
+	.sidebar .tab-btn { text-align:center; flex:1; }
+	.sidebar .tab-btn.active { box-shadow: inset 0 -3px 0 #7aa2f7; }
+}

@@ -540,6 +540,57 @@ tabs.forEach(tab => {
   });
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  const tablist = document.querySelector('.tab-bar[role="tablist"]');
+  if (!tablist || tablist.dataset.vnavInit === '1') return;
+  tablist.dataset.vnavInit = '1';
+
+  const tabs = Array.from(tablist.querySelectorAll('.tab-btn[role="tab"]'));
+  const panels = tabs.map(t => document.getElementById(t.getAttribute('aria-controls')));
+  const vertical = tablist.getAttribute('aria-orientation') === 'vertical';
+
+  function activateTab(btn, focusPanel = false) {
+    tabs.forEach((t, i) => {
+      const on = t === btn;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      const p = panels[i];
+      if (p) {
+        p.classList.toggle('active', on);
+        if (on && focusPanel) p.focus({ preventScroll: true });
+      }
+    });
+  }
+
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => activateTab(btn, true));
+  });
+
+  tablist.addEventListener('keydown', e => {
+    const i = tabs.indexOf(document.activeElement);
+    if (i === -1) return;
+
+    const prevKey = vertical ? 'ArrowUp' : 'ArrowLeft';
+    const nextKey = vertical ? 'ArrowDown' : 'ArrowRight';
+
+    let targetIndex = null;
+    if (e.key === prevKey) targetIndex = (i - 1 + tabs.length) % tabs.length;
+    else if (e.key === nextKey) targetIndex = (i + 1) % tabs.length;
+    else if (e.key === 'Home') targetIndex = 0;
+    else if (e.key === 'End') targetIndex = tabs.length - 1;
+
+    if (targetIndex !== null) {
+      e.preventDefault();
+      tabs[targetIndex].focus();
+      activateTab(tabs[targetIndex], true);
+    }
+  });
+
+  // Ensure exactly one active on load
+  activateTab(tabs.find(t => t.classList.contains('active')) || tabs[0], false);
+});
+
 // --- Firebase Auth & Firestore Setup ---
 const firebaseConfig = {
   apiKey: "AIzaSyCZR6kpfRg17DcStAoGDF6PuOaxXcdIpLY",

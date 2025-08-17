@@ -9,7 +9,6 @@
 	<!-- Chart.js pinned and deferred to avoid render-blocking -->
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
 	<link rel="manifest" href="manifest.json" />
-
 </head>
 <body>
 	<noscript style="color:#fff;background:#c00;padding:8px 12px;display:block;">This app requires JavaScript to function properly.</noscript>
@@ -43,193 +42,200 @@
       </form>
     </div>
 
-    <nav class="tab-bar" role="tablist" aria-label="Main navigation tabs" style="display:flex; align-items:center; gap:8px;">
-      <button class="tab-btn active" id="home-tab" data-tab="home" role="tab" aria-selected="true" aria-controls="home">Home</button>
-      <button class="tab-btn" id="dashboard-tab" data-tab="dashboard" role="tab" aria-selected="false" aria-controls="dashboard">Dashboard</button>
-      <button class="tab-btn" id="reports-tab" data-tab="reports" role="tab" aria-selected="false" aria-controls="reports">Reports</button>
+    <!-- Profile/Account Button (top right) -->
+    <div id="profileMenuContainer" style="position:fixed;top:18px;right:18px;z-index:2000;">
+      <button id="profileBtn" aria-haspopup="true" aria-expanded="false" aria-controls="profileDropdown" aria-label="Open account menu" style="background:none;border:none;cursor:pointer;padding:0;">
+        <span id="profileBtnPic" style="display:inline-block;width:38px;height:38px;border-radius:50%;overflow:hidden;background:#222;vertical-align:middle;">
+          <img id="profileBtnImg" alt="Profile" style="width:100%;height:100%;object-fit:cover;display:none;">
+          <svg id="profileBtnDefault" width="38" height="38" viewBox="0 0 48 48" fill="none" aria-label="Account" style="display:block;">
+            <circle cx="24" cy="24" r="22" stroke="#7aa2f7" stroke-width="2" fill="#222"/>
+            <circle cx="24" cy="20" r="8" fill="#7aa2f7" opacity="0.7"/>
+            <ellipse cx="24" cy="34" rx="12" ry="7" fill="#7aa2f7" opacity="0.2"/>
+          </svg>
+        </span>
+      </button>
+      <div id="profileDropdown" style="display:none;position:absolute;right:0;top:44px;background:#222;border-radius:10px;box-shadow:0 4px 16px #000a;padding:0;min-width:180px;">
+        <button id="openSettingsBtn" style="width:100%;text-align:left;padding:12px 18px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;border-bottom:1px solid #333;">
+          ⚙️ Settings
+        </button>
+        <button id="logoutBtn" class="btn-ghost" style="width:100%;text-align:left;padding:12px 18px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;">
+          🚪 Logout
+        </button>
+      </div>
+    </div>
 
-      <!-- Profile/Account Button inline with tabs -->
-      <div id="profileMenuContainer" style="position:relative;margin-left:auto;z-index:2000;">
-        <button id="profileBtn" aria-haspopup="true" aria-expanded="false" aria-controls="profileDropdown" aria-label="Open account menu" style="background:none;border:none;cursor:pointer;padding:0;">
-          <span id="profileBtnPic" style="display:inline-block;width:38px;height:38px;border-radius:50%;overflow:hidden;background:#222;vertical-align:middle;">
-            <img id="profileBtnImg" alt="Profile" style="width:100%;height:100%;object-fit:cover;display:none;">
-            <svg id="profileBtnDefault" width="38" height="38" viewBox="0 0 48 48" fill="none" aria-label="Account" style="display:block;">
-              <circle cx="24" cy="24" r="22" stroke="#7aa2f7" stroke-width="2" fill="#222"/>
-              <circle cx="24" cy="20" r="8" fill="#7aa2f7" opacity="0.7"/>
-              <ellipse cx="24" cy="34" rx="12" ry="7" fill="#7aa2f7" opacity="0.2"/>
+    <!-- REPLACED: move nav + panels into a sidebar layout -->
+    <div class="app-layout">
+      <aside class="sidebar">
+        <nav class="tab-bar" role="tablist" aria-label="Main navigation tabs" aria-orientation="vertical">
+          <button class="tab-btn active" id="home-tab" data-tab="home" role="tab" aria-selected="true" aria-controls="home">Home</button>
+          <button class="tab-btn" id="dashboard-tab" data-tab="dashboard" role="tab" aria-selected="false" aria-controls="dashboard">Dashboard</button>
+          <button class="tab-btn" id="reports-tab" data-tab="reports" role="tab" aria-selected="false" aria-controls="reports">Reports</button>
+        </nav>
+      </aside>
+
+      <main class="content-area" role="main">
+        <!-- Home Tab -->
+        <section id="home" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="home-tab">
+          <header>
+            <svg width="50" height="50" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <rect x="8" y="8" width="48" height="48" rx="8" ry="8" stroke="#50fa7b" stroke-width="3" fill="none"/>
+              <g>
+                <path id="bolt" d="M30 18 L38 18 L32 34 L40 34 L26 50 L34 34 L26 34 Z" fill="#50fa7b" />
+                <animate
+                  href="#bolt"
+                  attributeName="fill-opacity"
+                  values="1;0.5;1"
+                  dur="2s"
+                  repeatCount="indefinite"
+                />
+              </g>
+              <line x1="18" y1="28" x2="46" y2="28" stroke="#50fa7b" stroke-width="2" stroke-linecap="round"/>
+              <line x1="18" y1="36" x2="46" y2="36" stroke="#50fa7b" stroke-width="2" stroke-linecap="round"/>
+              <line x1="18" y1="44" x2="36" y2="44" stroke="#50fa7b" stroke-width="2" stroke-linecap="round"/>
             </svg>
-          </span>
-        </button>
-        <div id="profileDropdown" style="display:none;position:absolute;right:0;top:44px;background:#222;border-radius:10px;box-shadow:0 4px 16px #000a;padding:0;min-width:180px;z-index:3000;">
-          <button id="openSettingsBtn" style="width:100%;text-align:left;padding:12px 18px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;border-bottom:1px solid #333;">
-            ⚙️ Settings
-          </button>
-          <button id="logoutBtn" class="btn-ghost" style="width:100%;text-align:left;padding:12px 18px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;">
-            🚪 Logout
-          </button>
-        </div>
-      </div>
-    </nav>
 
-    <!-- Home Tab -->
-    <section id="home" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="home-tab">
-      <header>
-        <svg width="50" height="50" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none">
-          <rect x="8" y="8" width="48" height="48" rx="8" ry="8" stroke="#50fa7b" stroke-width="3" fill="none"/>
-          <g>
-            <path id="bolt" d="M30 18 L38 18 L32 34 L40 34 L26 50 L34 34 L26 34 Z" fill="#50fa7b" />
-            <animate
-              href="#bolt"
-              attributeName="fill-opacity"
-              values="1;0.5;1"
-              dur="2s"
-              repeatCount="indefinite"
-            />
-          </g>
-          <line x1="18" y1="28" x2="46" y2="28" stroke="#50fa7b" stroke-width="2" stroke-linecap="round"/>
-          <line x1="18" y1="36" x2="46" y2="36" stroke="#50fa7b" stroke-width="2" stroke-linecap="round"/>
-          <line x1="18" y1="44" x2="36" y2="44" stroke="#50fa7b" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+            <h1>Quickslip</h1>
+            <br>
+            <div class="muted">Quick register for cash tracking</div> 
+          </header>
 
-        <h1>Quickslip</h1>
-        <br>
-        <div class="muted">Quick register for cash tracking</div> 
-      </header>
+          <section class="card" aria-label="Daily sales entry form" style="margin-top: 20px;">
+            <form id="saleForm" onsubmit="return false;">
+              <div class="grid">
+                <div>
+                  <label for="date">Date</label>
+                  <input id="date" name="date" type="date" required>
+                </div>
 
-      <section class="card" aria-label="Daily sales entry form" style="margin-top: 20px;">
-        <form id="saleForm" onsubmit="return false;">
-          <div class="grid">
-            <div>
-              <label for="date">Date</label>
-              <input id="date" name="date" type="date" required>
+                <div>
+                  <label for="prevChange">Previous day change (₹)</label>
+                  <input id="prevChange" name="prevChange" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
+                </div>
+
+                <div>
+                  <label for="todaySales">Today sales (₹)</label>
+                  <input id="todaySales" name="todaySales" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
+                </div>
+
+                <div>
+                  <label for="boxActual">Box (Actual cash) (₹)</label>
+                  <input id="boxActual" name="boxActual" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
+                </div>
+
+                <div>
+                  <label for="takenSaving">Saving (₹)</label>
+                  <input id="takenSaving" name="takenSaving" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
+                </div>
+
+                <div>
+                  <label for="leftOver">Left over cash for next day change (₹)</label>
+                  <input id="leftOver" name="leftOver" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
+                </div>
+
+                <div class="full">
+                  <label>Expected Total (Previous change + Today sales) (₹)</label>
+                  <input id="expectedBox" readonly type="text">
+                </div>
+
+                <div class="full">
+                  <label>More or Less (₹)</label>
+                  <input id="variance" readonly type="text">
+                </div>
+              </div>
+
+              <div class="row">
+                <div>
+                  <div id="status" class="status ok" role="status" aria-live="polite">All inputs look good.</div>
+                  <div class="note">Tip: enter whole numbers only. Decimals are not allowed.</div>
+                </div>
+
+                <div class="buttons">
+                  <button class="btn-ghost" id="resetBtn" type="button">Reset</button>
+                  <button class="btn-primary" id="saveBtn" type="button">Save Entry</button>
+                </div>
+              </div>
+            </form>
+          </section>
+
+        </section>
+
+        <!-- Dashboard Tab -->
+        <section id="dashboard" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="dashboard-tab" style="color: var(--accent);">
+          <h2>Daily Sales This Month</h2>
+          <div style="margin-bottom: 12px;">
+            <label for="dashboardMonth" style="font-weight:600;">Select Month:</label>
+            <input type="month" id="dashboardMonth" style="margin-left:10px; padding:4px 8px; border-radius:5px; border:1px solid #7aa2f7; background:#282c34; color:var(--accent); font-weight:600;">
+          </div>
+          <div>
+            <strong>Total Sales This Month: </strong>
+            <span id="monthlySalesAmount">₹0.00</span>
+          </div>
+          <section id="chartSection" style="margin-top:20px; height: 300px;">
+            <canvas id="monthlySalesChart" aria-label="Daily sales line chart"></canvas>
+          </section>
+        </section>
+
+        <!-- Reports Tab -->
+        <section id="reports" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="reports-tab" style="color: var(--accent); padding: 10px;">
+          <h2>Reports</h2>
+          
+          <section class="card" aria-label="Saved sales entries" style="margin-top: 20px;">
+            <div class="table-scroll">
+              <table id="salesTable" aria-describedby="tableDesc">
+                <caption id="tableDesc" style="text-align:left; padding-bottom:8px; color: var(--text-muted);">
+                  Entries with edit and delete options
+                </caption>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Today Sales (₹)</th>
+                    <th>Box (₹)</th>
+                    <th>Prev Day Change (₹)</th>
+                    <th>More or Less (₹)</th>
+                    <th>Next Day Change (₹)</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Entries will appear here -->
+                </tbody>
+                <tfoot>
+                  <tr class="totals-row">
+                    <td>Total</td>
+                    <td id="totalSales">0.00</td>
+                    <td id="totalBox">0.00</td>
+                    <td colspan="4"></td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
+          </section>
 
-            <div>
-              <label for="prevChange">Previous day change (₹)</label>
-              <input id="prevChange" name="prevChange" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
-            </div>
-
-            <div>
-              <label for="todaySales">Today sales (₹)</label>
-              <input id="todaySales" name="todaySales" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
-            </div>
-
-            <div>
-              <label for="boxActual">Box (Actual cash) (₹)</label>
-              <input id="boxActual" name="boxActual" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
-            </div>
-
-            <div>
-              <label for="takenSaving">Saving (₹)</label>
-              <input id="takenSaving" name="takenSaving" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
-            </div>
-
-            <div>
-              <label for="leftOver">Left over cash for next day change (₹)</label>
-              <input id="leftOver" name="leftOver" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
-            </div>
-
-            <div class="full">
-              <label>Expected Total (Previous change + Today sales) (₹)</label>
-              <input id="expectedBox" readonly type="text">
-            </div>
-
-            <div class="full">
-              <label>More or Less (₹)</label>
-              <input id="variance" readonly type="text">
-            </div>
+          <div id="importPreviewContainer" style="display:none; margin-top: 10px;">
+            <h3>CSV Preview</h3>
+            <table id="importPreviewTable" border="1" cellpadding="5" cellspacing="0" style="width:100%; border-collapse: collapse;"></table>
+            <button id="confirmImportBtn" class="btn-primary" type="button">
+              <span class="btn-icon" style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('download.png') no-repeat center/contain;margin-right:6px;"></span>
+              Confirm Import
+            </button>
+            <button id="cancelImportBtn" class="btn-ghost" type="button">
+              <span class="btn-icon" style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('upload.png') no-repeat center/contain;margin-right:6px;transform:rotate(180deg);"></span>
+              Cancel Import
+            </button>
           </div>
 
-          <div class="row">
-            <div>
-              <div id="status" class="status ok" role="status" aria-live="polite">All inputs look good.</div>
-              <div class="note">Tip: enter whole numbers only. Decimals are not allowed.</div>
-            </div>
-
-            <div class="buttons">
-              <button class="btn-ghost" id="resetBtn" type="button">Reset</button>
-              <button class="btn-primary" id="saveBtn" type="button">Save Entry</button>
-            </div>
+          <div id="backupReminder" style="margin-top:15px; color:orange; font-weight:bold; display:none;">
+            Remember to export your sales data regularly to avoid losing it!
           </div>
-        </form>
-      </section>
 
-    </section>
+          <button type="button" id="exportCsvBtn">Export CSV</button>
+          <input type="file" id="importCsvInput" accept=".csv" style="display:none" />
+          <button type="button" id="importCsvBtn">Import CSV</button>
 
-    <!-- Dashboard Tab -->
-    <section id="dashboard" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="dashboard-tab" style="color: var(--accent);">
-      <h2>Daily Sales This Month</h2>
-      <div style="margin-bottom: 12px;">
-        <label for="dashboardMonth" style="font-weight:600;">Select Month:</label>
-        <input type="month" id="dashboardMonth" style="margin-left:10px; padding:4px 8px; border-radius:5px; border:1px solid #7aa2f7; background:#282c34; color:var(--accent); font-weight:600;">
-      </div>
-      <div>
-        <strong>Total Sales This Month: </strong>
-        <span id="monthlySalesAmount">₹0.00</span>
-      </div>
-      <section id="chartSection" style="margin-top:20px; height: 300px;">
-        <canvas id="monthlySalesChart" aria-label="Daily sales line chart"></canvas>
-      </section>
-    </section>
-
-    <!-- Reports Tab -->
-    <section id="reports" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="reports-tab" style="color: var(--accent); padding: 10px;">
-      <h2>Reports</h2>
-      
-      <section class="card" aria-label="Saved sales entries" style="margin-top: 20px;">
-        <div class="table-scroll">
-          <table id="salesTable" aria-describedby="tableDesc">
-            <caption id="tableDesc" style="text-align:left; padding-bottom:8px; color: var(--text-muted);">
-              Entries with edit and delete options
-            </caption>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Today Sales (₹)</th>
-                <th>Box (₹)</th>
-                <th>Prev Day Change (₹)</th>
-                <th>More or Less (₹)</th>
-                <th>Next Day Change (₹)</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Entries will appear here -->
-            </tbody>
-            <tfoot>
-              <tr class="totals-row">
-                <td>Total</td>
-                <td id="totalSales">0.00</td>
-                <td id="totalBox">0.00</td>
-                <td colspan="4"></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </section>
-
-      <div id="importPreviewContainer" style="display:none; margin-top: 10px;">
-        <h3>CSV Preview</h3>
-        <table id="importPreviewTable" border="1" cellpadding="5" cellspacing="0" style="width:100%; border-collapse: collapse;"></table>
-        <button id="confirmImportBtn" class="btn-primary" type="button">
-          <span class="btn-icon" style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('download.png') no-repeat center/contain;margin-right:6px;"></span>
-          Confirm Import
-        </button>
-        <button id="cancelImportBtn" class="btn-ghost" type="button">
-          <span class="btn-icon" style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('upload.png') no-repeat center/contain;margin-right:6px;transform:rotate(180deg);"></span>
-          Cancel Import
-        </button>
-      </div>
-
-      <div id="backupReminder" style="margin-top:15px; color:orange; font-weight:bold; display:none;">
-        Remember to export your sales data regularly to avoid losing it!
-      </div>
-
-      <button type="button" id="exportCsvBtn">Export CSV</button>
-      <input type="file" id="importCsvInput" accept=".csv" style="display:none" />
-      <button type="button" id="importCsvBtn">Import CSV</button>
-
-    </section>
+        </section>
+      </main> <!-- Added: close main -->
+    </div>
 
     <!-- Settings Modal -->
     <div id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;">
