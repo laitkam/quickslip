@@ -882,3 +882,56 @@
 #reportsMonthClear.btn-ghost:hover {
   background: #2f3540;
 }
+
+/* Added: Month filter UI (icon-inside input, Tailwind-like look) */
+.month-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+
+.month-input-wrap {
+  position: relative;
+  display: inline-block;
+  max-width: 220px;
+  width: 100%;
+}
+
+.month-input-icon {
+  position: absolute;
+  inset: 0 auto 0 10px;
+  margin: auto 0;
+  width: 16px;
+  height: 16px;
+  color: #9ca3af; /* gray-400 */
+  pointer-events: none;
+}
+
+.month-input,
+input[type="month"] {
+  width: 100%;
+  padding: 10px 12px;
+  padding-left: 36px; /* space for icon */
+  border: 1px solid #374151; /* gray-700 */
+  border-radius: 8px;         /* rounded-lg */
+  background: #1f2329;        /* dark bg */
+  color: #e5e7eb;             /* text */
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+.month-input:focus,
+input[type="month"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(122,162,247,0.25); /* accent ring */
+  background: #252a31;
+}
+
+/* Tweak calendar indicator for dark background */
+input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  opacity: 0.85;
+}
