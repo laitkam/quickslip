@@ -782,3 +782,21 @@
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Force anything marked hidden inside the sales table to be hidden */
+#salesTable.table-modern [hidden],
+#salesTable.table-modern tr[hidden],
+#salesTable.table-modern tfoot[hidden] {
+  display: none !important;
+}
+
+/* Optional: only enforce table display fixes on mobile to avoid conflicts */
+@media (max-width: 900px) {
+  /* If you previously set display: table-row !important on all rows, keep it scoped here only */
+  /* Example (keep if present elsewhere in the file):
+  #salesTable.table-modern thead { display: table-header-group !important; }
+  #salesTable.table-modern tbody { display: table-row-group !important; }
+  #salesTable.table-modern tfoot { display: table-footer-group !important; }
+  #salesTable.table-modern tr    { display: table-row !important; }
+  */
+}

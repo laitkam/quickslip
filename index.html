@@ -9,6 +9,12 @@
 	<!-- Chart.js pinned and deferred to avoid render-blocking -->
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
 	<link rel="manifest" href="manifest.json" />
+  <style>
+    /* Ensure any table parts marked hidden are truly hidden */
+    #salesTable.table-modern [hidden],
+    #salesTable.table-modern tr[hidden],
+    #salesTable.table-modern tfoot[hidden] { display: none !important; }
+  </style>
 </head>
 <body>
 	<noscript style="color:#fff;background:#c00;padding:8px 12px;display:block;">This app requires JavaScript to function properly.</noscript>
@@ -189,7 +195,15 @@
         <!-- Reports Tab -->
         <section id="reports" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="reports-tab" style="color: var(--accent); padding: 10px;">
           <h2>Reports</h2>
-          
+
+          <!-- Month filter controls -->
+          <div class="report-controls" style="display:flex;align-items:center;gap:10px;margin:8px 0 12px;">
+            <label for="reportsMonth" style="font-weight:600;">Filter by month:</label>
+            <input type="month" id="reportsMonth" style="padding:4px 8px;border-radius:5px;border:1px solid #7aa2f7;background:#282c34;color:var(--accent);font-weight:600;">
+            <button type="button" id="reportsMonthClear" class="btn-ghost">Clear</button>
+            <span id="reportsMonthStatus" class="muted" style="margin-left:auto;font-size:12px;color:#aab;">Showing: All</span>
+          </div>
+
           <section class="card" aria-label="Saved sales entries" style="margin-top: 20px;">
             <div class="table-shell">
               <table id="salesTable" class="table-modern" aria-describedby="tableDesc">
@@ -209,6 +223,9 @@
                 </thead>
                 <tbody>
                   <!-- Entries will appear here -->
+                  <tr id="noDataRow" class="no-data" style="display:none;">
+                    <td colspan="7" style="text-align:center;padding:16px 24px;color:#aab;">No data for selected month.</td>
+                  </tr>
                 </tbody>
                 <tfoot>
                   <tr class="totals-row tfoot-modern">
@@ -366,6 +383,99 @@
         }
       }
       sidebar.addEventListener('keydown', onKeyDown);
+    });
+
+    // --- Reports: month filter and totals recalc ---
+    document.addEventListener('DOMContentLoaded', function () {
+      const monthInput = document.getElementById('reportsMonth');
+      const clearBtn = document.getElementById('reportsMonthClear');
+      const statusEl = document.getElementById('reportsMonthStatus');
+      const table = document.getElementById('salesTable');
+      if (!table || !monthInput || !clearBtn || !statusEl) return;
+
+      const tbody = table.querySelector('tbody');
+      const tfoot = table.querySelector('tfoot');
+      const noDataRow = document.getElementById('noDataRow');
+      const totalSalesEl = document.getElementById('totalSales');  // ADDED
+      const totalBoxEl = document.getElementById('totalBox');      // ADDED
+
+      function parseDateString(s) {
+        if (!s) return null;
+        const t = s.trim();
+        // Try ISO YYYY-MM-DD
+        if (/^\d{4}-\d{2}-\d{2}$/.test(t)) {
+          const [y,m,d] = t.split('-').map(Number);
+          return new Date(y, m - 1, d);
+        }
+        // Try DD/MM/YYYY or DD-MM-YYYY
+        const mm1 = t.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+        if (mm1) {
+          const d = Number(mm1[1]), m = Number(mm1[2]), y = Number(mm1[3]);
+          return new Date(y, m - 1, d);
+        }
+        // Fallback to Date parser
+        const dflt = new Date(t);
+        return isNaN(dflt) ? null : dflt;
+      }
+
+      function formatMonthLabel(ym) {
+        if (!ym) return 'All';
+        const [y, m] = ym.split('-').map(Number);
+        const dt = new Date(y, m - 1, 1);
+        return dt.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+      }
+
+      function num(val) {
+        const n = parseFloat(String(val).replace(/[^\d.-]/g, ''));
+        return isNaN(n) ? 0 : n;
+      }
+
+      function applyMonthFilter() {
+        const ym = monthInput.value; // "YYYY-MM"
+        let visibleSales = 0;
+        let visibleBox = 0;
+        const rows = Array.from(tbody.querySelectorAll('tr:not(#noDataRow)'));
+
+        rows.forEach(tr => {
+          const cells = tr.children;
+          if (!cells || cells.length === 0) return;
+          const dateText = (cells[0].textContent || '').trim();
+          const dt = parseDateString(dateText);
+          const matches = !ym || (dt && `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}` === ym);
+
+          tr.hidden = !matches;
+
+          if (matches) {
+            visibleSales += num(cells[1]?.textContent);
+            visibleBox += num(cells[2]?.textContent);
+          }
+        });
+
+        const hasAny = rows.some(tr => !tr.hidden);
+        if (noDataRow) noDataRow.hidden = hasAny;
+        if (tfoot) tfoot.hidden = !hasAny;
+
+        if (totalSalesEl) totalSalesEl.textContent = visibleSales.toFixed(2);
+        if (totalBoxEl) totalBoxEl.textContent = visibleBox.toFixed(2);
+        statusEl.textContent = `Showing: ${formatMonthLabel(ym)}`;
+      }
+
+      // Default to current month if empty
+      if (!monthInput.value) {
+        const now = new Date();
+        monthInput.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      }
+      applyMonthFilter();
+
+      monthInput.addEventListener('change', applyMonthFilter);
+      clearBtn.addEventListener('click', () => {
+        monthInput.value = '';
+        applyMonthFilter();
+      });
+
+      // Keep in sync if rows change dynamically
+      const mo = new MutationObserver(applyMonthFilter);
+      if (tbody) mo.observe(tbody, { childList: true, subtree: false });
     });
   </script>
 </body>
