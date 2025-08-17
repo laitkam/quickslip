@@ -649,37 +649,33 @@
 	.tab-content.active { display: block; }
 }
 
-/* Mobile: off-canvas drawer -> dropdown under hamburger */
+/* Mobile: off-canvas drawer -> slide in from left */
 @media (max-width: 900px) {
   .sidebar {
-    position: fixed;            /* anchor to viewport near the toggle button */
-    top: 70px;                  /* just below the hamburger (12px top + ~22px icon + gap) */
-    left: 12px;                 /* align with hamburger left */
+    position: fixed;
+    top: 70px;
+    left: 0;
     z-index: 3000;
     width: 260px;
-    height: auto;               /* natural height */
-    max-height: 70vh;           /* scroll if long */
+    height: 100vh;           /* full height drawer */
     overflow: auto;
     background: #1f2329;
-    border: 1px solid #333;
-    border-radius: 10px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-    padding: 12px 10px;
+    border-right: 1px solid #333;
+    border-radius: 0;
+    box-shadow: 0 10px 30px #0008;
+    padding: 16px 10px;
 
-    /* dropdown animation (collapsed by default) */
-    transform: scaleY(0);
-    transform-origin: top left;
-    opacity: 0;
+    /* slide from left (closed by default) */
+    transform: translateX(-100%);
     pointer-events: none;
-    transition: transform .2s ease, opacity .2s ease;
+    transition: transform .25s ease;
   }
   .sidebar.is-open {
-    transform: scaleY(1);
-    opacity: 1;
+    transform: translateX(0);
     pointer-events: auto;
   }
 
-  /* keep tab list vertical inside dropdown */
+  /* keep menu vertical inside the drawer */
   .sidebar .tab-bar { flex-direction: column; gap: 8px; }
   .sidebar .tab-btn { width: 100%; text-align: left; }
 }
