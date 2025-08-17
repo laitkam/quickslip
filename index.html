@@ -14,6 +14,37 @@
     #salesTable.table-modern [hidden],
     #salesTable.table-modern tr[hidden],
     #salesTable.table-modern tfoot[hidden] { display: none !important; }
+
+    /* Added: Styles for the dashboard total donut chart */
+    .total-donut-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .donut-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 80%;
+      height: 80%;
+      border-radius: 50%;
+      background: #222;
+      color: #50fa7b;
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-align: center;
+    }
+    .donut-subtitle {
+      font-size: 0.8rem;
+      font-weight: 400;
+      color: #aaa;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -183,10 +214,16 @@
             <label for="dashboardMonth" style="font-weight:600;">Select Month:</label>
             <input type="month" id="dashboardMonth" style="margin-left:10px; padding:4px 8px; border-radius:5px; border:1px solid #7aa2f7; background:#282c34; color:var(--accent); font-weight:600;">
           </div>
-          <div>
-            <strong>Total Sales This Month: </strong>
-            <span id="monthlySalesAmount">₹0.00</span>
+
+          <!-- Replaced summary with donut containing only the amount -->
+          <div class="total-donut-wrap" aria-live="polite">
+            <canvas id="totalDonutChart" aria-label="Total sales doughnut"></canvas>
+            <div class="donut-center">
+              <div id="monthlySalesAmount" class="donut-amount">₹0.00</div>
+              <div class="donut-subtitle">Total sales</div>
+            </div>
           </div>
+
           <section id="chartSection" style="margin-top:20px; height: 300px;">
             <canvas id="monthlySalesChart" aria-label="Daily sales line chart"></canvas>
           </section>
@@ -482,6 +519,91 @@
       // Keep in sync if rows change dynamically
       const mo = new MutationObserver(applyMonthFilter);
       if (tbody) mo.observe(tbody, { childList: true, subtree: false });
+    });
+
+    // --- Dashboard: Monthly sales donut chart ---
+    document.addEventListener('DOMContentLoaded', function () {
+      const ctx = document.getElementById('totalDonutChart').getContext('2d');
+      const donutChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Total Sales',
+            data: [0, 100], // Placeholder: actual data will be set on month change
+            backgroundColor: ['#50fa7b', '#222'],
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+                label: function(tooltipItem) {
+                  const value = tooltipItem.raw;
+                  return value ? `₹${value.toFixed(2)}` : '';
+                }
+              }
+            }
+          }
+        }
+      });
+
+      function updateDonutChart(monthlyTotal) {
+        const amountEl = document.getElementById('monthlySalesAmount');
+        const newData = [monthlyTotal, 100 - monthlyTotal]; // Sales vs. Remaining
+        donutChart.data.datasets[0].data = newData;
+        donutChart.update();
+
+        // Update the center amount display
+        if (amountEl) {
+          amountEl.textContent = `₹${monthlyTotal.toFixed(2)}`;
+        }
+      }
+
+      // Initial render: get total sales for the current month
+      let initialLoad = true;
+      function fetchMonthlyTotal() {
+        const ym = document.getElementById('dashboardMonth').value;
+        if (!ym) return;
+
+        const [year, month] = ym.split('-').map(Number);
+        const firstDay = new Date(year, month - 1, 1);
+        const lastDay = new Date(year, month, 0);
+
+        // Sum up today's sales for the selected month
+        const monthlyTotal = Array.from(document.querySelectorAll('#salesTable tbody tr'))
+          .filter(tr => {
+            const dateCell = tr.querySelector('td');
+            if (!dateCell) return false;
+            const dateValue = new Date(dateCell.textContent.trim());
+            return dateValue >= firstDay && dateValue <= lastDay;
+          })
+          .reduce((sum, tr) => {
+            const salesCell = tr.querySelector('td:nth-child(2)');
+            const salesValue = parseFloat(salesCell.textContent.replace(/[^\d.-]/g, '')) || 0;
+            return sum + salesValue;
+          }, 0);
+
+        updateDonutChart(monthlyTotal);
+
+        if (initialLoad) {
+          initialLoad = false;
+          // Also update the line chart for the first time
+          const event = new Event('change');
+          document.getElementById('reportsMonth').dispatchEvent(event);
+        }
+      }
+
+      // Update donut chart when month changes
+      document.getElementById('dashboardMonth').addEventListener('change', fetchMonthlyTotal);
+
+      // Initial fetch
+      fetchMonthlyTotal();
     });
   </script>
 </body>

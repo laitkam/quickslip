@@ -60,6 +60,7 @@ const els = {
 let entries = [];
 let editIndex = -1;
 let dailySalesChart = null; // now used for line chart only
+let totalDonutChart = null; // donut for total amount
 let importedEntriesTemp = null;
 let lastChanged = null; // Track which field was last changed: 'saving' or 'leftOver'
 let dashboardMonth = null; // {year, month} for dashboard chart
@@ -179,6 +180,77 @@ els.resetBtn.addEventListener('click', () => {
   lastChanged = null;
 });
 
+// Render the total sales doughnut (multi-segment like reference, amount in center)
+function renderTotalDonut() {
+  // Determine selected month
+  let year, month;
+  if (dashboardMonth && dashboardMonth.year && dashboardMonth.month) {
+    year = dashboardMonth.year; month = dashboardMonth.month;
+  } else {
+    const now = new Date(); year = now.getFullYear(); month = now.getMonth() + 1;
+  }
+
+  // Monthly aggregates for 4 segments
+  let agg = { prevChange: 0, sales: 0, leftOver: 0, saving: 0 };
+  entries.forEach(e => {
+    const [y, m] = e.date.split('-').map(Number);
+    if (y === year && m === month) {
+      agg.prevChange += e.prevChange || 0;
+      agg.sales += e.todaySales || 0;
+      agg.leftOver += e.leftOver || 0;
+      agg.saving += e.takenSaving || 0;
+    }
+  });
+
+  const ctx = document.getElementById('totalDonutChart');
+  if (!ctx) return;
+
+  // Colors/palette similar to the screenshot (pink, blue, teal, peach)
+  const colors = ['#ec4899', '#3b82f6', '#06b6d4', '#f59e0b'];
+  const values = [
+    Math.max(agg.prevChange, 0),
+    Math.max(agg.sales, 0),
+    Math.max(agg.leftOver, 0),
+    Math.max(agg.saving, 0)
+  ];
+
+  // Fallback to a faint ring if all values are zero
+  const allZero = values.every(v => v === 0);
+  const data = {
+    labels: ['Prev change', 'Sales', 'Left over', 'Saving'],
+    datasets: [{
+      data: allZero ? [1, 1, 1, 1] : values,
+      backgroundColor: colors,
+      borderWidth: 0,
+      hoverOffset: 6,
+      spacing: 4,            // gap between segments
+      borderRadius: 8        // rounded arc ends
+    }]
+  };
+  const config = {
+    type: 'doughnut',
+    data,
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false } // clean look like the reference
+      },
+      cutout: '72%',               // ring thickness similar to reference
+      rotation: -Math.PI / 2       // start at top
+    }
+  };
+
+  if (totalDonutChart) {
+    totalDonutChart.data = data;
+    totalDonutChart.options.cutout = config.options.cutout;
+    totalDonutChart.options.rotation = config.options.rotation;
+    totalDonutChart.update();
+  } else {
+    totalDonutChart = new Chart(ctx, config);
+  }
+}
+
 // Set up month picker for dashboard
 function setupDashboardMonthPicker() {
   const monthInput = document.getElementById('dashboardMonth');
@@ -193,6 +265,7 @@ function setupDashboardMonthPicker() {
     dashboardMonth = { year: y, month: m };
     renderDailySalesChart();
     updateMonthlySales();
+    renderTotalDonut(); // ensure donut updates
   });
 }
 
@@ -340,8 +413,9 @@ function renderTable() {
     btn.addEventListener('click', e => deleteEntry(parseInt(btn.dataset.index, 10)));
   });
 
-  renderDailySalesChart(); // always use the dashboardMonth
+  renderDailySalesChart();
   updateMonthlySales();
+  renderTotalDonut(); // keep donut in sync
 }
 
 // Edit & Delete
