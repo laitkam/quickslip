@@ -673,3 +673,112 @@
 	.tab-content { display: none; }
 	.tab-content.active { display: block; }
 }
+
+/* Reports: modern table */
+.table-shell {
+  position: relative;
+  overflow-x: auto;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  border-radius: 8px;
+  background: transparent;
+}
+@media (min-width: 640px) {
+  .table-shell { border-radius: 10px; }
+}
+
+.table-modern {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem; /* text-sm */
+  text-align: left;
+  color: #cfd8e3; /* dark text */
+}
+
+.table-modern thead.thead-modern {
+  background: #2b2f36;
+  color: #aeb8c5;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem; /* text-xs */
+}
+.table-modern thead.thead-modern th {
+  padding: 12px 24px; /* px-6 py-3 */
+  font-weight: 700;
+  border-bottom: 1px solid #3a3f46;
+}
+
+.table-modern tbody tr {
+  background: #1f2329; /* row bg */
+  border-bottom: 1px solid #333;
+}
+.table-modern tbody tr:nth-child(even) { background: #1b1f25; }
+.table-modern tbody tr:hover { background: #2b2f36; }
+
+.table-modern th, .table-modern td {
+  padding: 12px 24px; /* px-6 py-3/4 */
+  vertical-align: middle;
+  color: #cfd8e3;
+  white-space: nowrap;
+}
+
+.table-modern td:last-child, .table-modern th:last-child { text-align: right; }
+
+.table-modern tfoot .tfoot-modern td {
+  padding: 12px 24px;
+  background: #252a31;
+  border-top: 2px solid #3a3f46;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+/* Make caption align like helper text above the table */
+.table-modern caption {
+  caption-side: top;
+  padding: 10px 6px 8px;
+}
+
+/* Support RTL header alignment if needed */
+[dir="rtl"] .table-modern { text-align: right; }
+/* Reports: hard reset to prevent mobile stacked/card table behavior */
+#salesTable.table-modern {
+  display: table !important;
+  width: 100% !important;
+  min-width: 720px;               /* allow horizontal scroll on small screens */
+  table-layout: auto !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+#salesTable.table-modern thead { display: table-header-group !important; }
+#salesTable.table-modern tbody { display: table-row-group !important; }
+#salesTable.table-modern tfoot { display: table-footer-group !important; }
+#salesTable.table-modern tr    { display: table-row !important; }
+
+#salesTable.table-modern th,
+#salesTable.table-modern td {
+  display: table-cell !important;
+  border-radius: 0 !important;
+  white-space: nowrap;            /* keep cells compact; scroll horizontally instead */
+  padding: 12px 16px;             /* tighter padding on small screens */
+}
+
+/* Kill any pseudo-labels from older mobile table styles */
+#salesTable.table-modern td::before,
+#salesTable.table-modern th::before {
+  content: none !important;
+}
+
+/* Keep actions column compact and aligned right */
+#salesTable.table-modern td:last-child,
+#salesTable.table-modern th:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Wrapper ensures horizontal scrolling is available */
+.table-shell {
+  position: relative;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

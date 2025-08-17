@@ -191,12 +191,12 @@
           <h2>Reports</h2>
           
           <section class="card" aria-label="Saved sales entries" style="margin-top: 20px;">
-            <div class="table-scroll">
-              <table id="salesTable" aria-describedby="tableDesc">
+            <div class="table-shell">
+              <table id="salesTable" class="table-modern" aria-describedby="tableDesc">
                 <caption id="tableDesc" style="text-align:left; padding-bottom:8px; color: var(--text-muted);">
                   Entries with edit and delete options
                 </caption>
-                <thead>
+                <thead class="thead-modern">
                   <tr>
                     <th>Date</th>
                     <th>Today Sales (₹)</th>
@@ -211,7 +211,7 @@
                   <!-- Entries will appear here -->
                 </tbody>
                 <tfoot>
-                  <tr class="totals-row">
+                  <tr class="totals-row tfoot-modern">
                     <td>Total</td>
                     <td id="totalSales">0.00</td>
                     <td id="totalBox">0.00</td>
