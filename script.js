@@ -18,6 +18,18 @@ function fromPaise(p) {
   return sign + p.toLocaleString('en-IN');
 }
 
+// Format for UI only: YYYY-MM-DD -> DD-MM-YYYY
+function formatDisplayDate(iso) {
+  if (!iso || typeof iso !== 'string') return iso || '';
+  const parts = iso.split('-').map(Number);
+  if (parts.length !== 3) return iso;
+  const [y, m, d] = parts;
+  if (!y || !m || !d) return iso;
+  const dd = String(d).padStart(2, '0');
+  const mm = String(m).padStart(2, '0');
+  return `${dd}-${mm}-${y}`;
+}
+
 // DOM elements
 const els = {
   date: document.getElementById('date'),
@@ -304,7 +316,7 @@ function renderTable() {
     totalBoxPaise += entry.boxActual;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="Date">${entry.date}</td>
+      <td data-label="Date">${formatDisplayDate(entry.date)}</td>
       <td data-label="Today Sales (₹)">₹${fromPaise(entry.todaySales)}</td>
       <td data-label="Box (₹)">₹${fromPaise(entry.boxActual)}</td>
       <td data-label="Prev Day Change (₹)">₹${fromPaise(entry.prevChange)}</td>
@@ -346,7 +358,7 @@ function loadEntryForEdit(index) {
 
   editIndex = index;
   els.saveBtn.textContent = 'Update Entry';
-  els.status.textContent = `Editing entry for ${e.date}`;
+  els.status.textContent = `Editing entry for ${formatDisplayDate(e.date)}`;
   els.status.className = 'status warn';
   lastChanged = null;
 
@@ -357,7 +369,7 @@ function loadEntryForEdit(index) {
   document.getElementById('home').classList.add('active');
 }
 function deleteEntry(index) {
-  if (confirm(`Delete entry for ${entries[index].date}?`)) {
+  if (confirm(`Delete entry for ${formatDisplayDate(entries[index].date)}?`)) {
     entries.splice(index, 1);
     saveToLocalStorage();
     renderTable();
@@ -805,8 +817,9 @@ function setupAuthUI() {
 (function lockUIUntilLogin() {
   const style = document.createElement('style');
   style.innerHTML = `
+    /* Keep visual dim/blur but allow clicks so filters/buttons work */
     body.auth-locked .container > *:not(#loginModal):not(#registerModal):not(#logoutBtn) {
-      pointer-events: none;
+      /* pointer-events: none;  <-- removed so UI remains clickable */
       filter: blur(2px) grayscale(0.5);
       user-select: none;
       opacity: 0.5;

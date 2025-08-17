@@ -800,3 +800,85 @@
   #salesTable.table-modern tr    { display: table-row !important; }
   */
 }
+
+/* Reports month picker button + dropdown (Tailwind-like) */
+.btn-menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;            /* text-sm */
+  line-height: 1;
+  padding: 6px 10px;              /* px-3 py-1.5 */
+  border-radius: 8px;             /* rounded-lg */
+  background: #1f2329;            /* dark:bg-gray-800 */
+  color: #e5e7eb;                 /* dark:text-white */
+  border: 1px solid #4b5563;      /* dark:border-gray-600 */
+  cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, color .2s ease;
+}
+.btn-menu:hover {
+  background: #2b2f36;            /* dark:hover:bg-gray-700 */
+  border-color: #6b7280;          /* dark:hover:border-gray-600 */
+}
+.btn-menu:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(55,65,81,0.55); /* dark:focus:ring-gray-700 */
+}
+.btn-menu svg {
+  color: #9ca3af;                 /* text-gray-400 */
+}
+
+/* Dropdown */
+.month-filter { position: relative; display: inline-block; }
+.month-filter .menu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  z-index: 4000;
+  min-width: 12rem;               /* w-48 */
+  background: #1f2329;            /* dark:bg-gray-700 */
+  color: #e5e7eb;
+  border: 1px solid #374151;      /* dark:divide-gray-600 */
+  border-radius: 10px;            /* rounded-lg */
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5); /* shadow-md */
+  padding: 4px;
+}
+.month-filter .menu[hidden] { display: none !important; }
+
+.menu-list { list-style: none; margin: 0; padding: 8px; }
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;                   /* p-2 */
+  border-radius: 6px;
+  cursor: pointer;
+  color: #e5e7eb;                 /* dark:text-gray-300 */
+  transition: background-color .15s ease;
+}
+.menu-item:hover {
+  background: #2f3540;            /* dark:hover:bg-gray-600 */
+}
+
+/* Radios inside dropdown */
+.menu-item input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);    /* match theme accent */
+  margin: 0;
+  flex: none;
+}
+
+/* Clear button inside dropdown */
+#reportsMonthClear.btn-ghost {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #e5e7eb;
+  padding: 8px;
+  border-radius: 6px;
+}
+#reportsMonthClear.btn-ghost:hover {
+  background: #2f3540;
+}
