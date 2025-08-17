@@ -649,29 +649,39 @@
 	.tab-content.active { display: block; }
 }
 
-/* Mobile: off-canvas drawer */
+/* Mobile: off-canvas drawer -> dropdown under hamburger */
 @media (max-width: 900px) {
-	.app-layout { display: block; }
-	.sidebar {
-		position: fixed; top: 0; left: 0; z-index: 3000;
-		width: 260px; height: 100vh;
-		background: #1f2329; border-right: 1px solid #333;
-		padding: 16px 10px;
-		transform: translateX(-100%); transition: transform .25s ease;
-		box-shadow: 0 10px 30px #0008;
-	}
-	.sidebar.is-open { transform: translateX(0); }
-	.sidebar .tab-bar { display: flex; flex-direction: column; gap: 8px; }
-	.sidebar .tab-btn {
-		width: 100%; text-align: left; padding: 10px 12px; border-radius: 8px;
-		background: transparent; border: 1px solid transparent; color: #cfd8e3; cursor: pointer;
-	}
-	.sidebar .tab-btn.active {
-		background: #2b2f36; border-color: #333; color: #fff; box-shadow: inset 3px 0 0 #7aa2f7;
-	}
-	.content-area { padding: 16px; overflow: auto; }
-	.tab-content { display: none; }
-	.tab-content.active { display: block; }
+  .sidebar {
+    position: fixed;            /* anchor to viewport near the toggle button */
+    top: 70px;                  /* just below the hamburger (12px top + ~22px icon + gap) */
+    left: 12px;                 /* align with hamburger left */
+    z-index: 3000;
+    width: 260px;
+    height: auto;               /* natural height */
+    max-height: 70vh;           /* scroll if long */
+    overflow: auto;
+    background: #1f2329;
+    border: 1px solid #333;
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    padding: 12px 10px;
+
+    /* dropdown animation (collapsed by default) */
+    transform: scaleY(0);
+    transform-origin: top left;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform .2s ease, opacity .2s ease;
+  }
+  .sidebar.is-open {
+    transform: scaleY(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* keep tab list vertical inside dropdown */
+  .sidebar .tab-bar { flex-direction: column; gap: 8px; }
+  .sidebar .tab-btn { width: 100%; text-align: left; }
 }
 
 /* Reports: modern table */

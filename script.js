@@ -634,15 +634,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!sidebar || !toggleBtn) return;
 
+  // Icons: hamburger <-> close (X)
+  const ICON_HAMBURGER = `
+    <span class="sr-only">Open menu</span>
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M3 6h18M3 12h18M3 18h18"/>
+    </svg>`;
+  const ICON_CLOSE = `
+    <span class="sr-only">Close menu</span>
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M6 6l12 12M18 6L6 18"/>
+    </svg>`;
+
+  function setToggleIcon(open) {
+    toggleBtn.innerHTML = open ? ICON_CLOSE : ICON_HAMBURGER;
+  }
+  setToggleIcon(false);
+
   function openDrawer() {
     sidebar.classList.add('is-open');
     toggleBtn.setAttribute('aria-expanded', 'true');
+    setToggleIcon(true);
     if (backdrop) { backdrop.hidden = false; backdrop.classList.add('show'); }
     document.body.style.overflow = 'hidden';
   }
   function closeDrawer() {
     sidebar.classList.remove('is-open');
     toggleBtn.setAttribute('aria-expanded', 'false');
+    setToggleIcon(false);
     if (backdrop) { backdrop.classList.remove('show'); backdrop.hidden = true; }
     document.body.style.overflow = '';
   }
@@ -650,18 +669,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sidebar.classList.contains('is-open')) closeDrawer(); else openDrawer();
   }
 
-  toggleBtn.addEventListener('click', toggleDrawer);
+  toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleDrawer(); });
   backdrop?.addEventListener('click', closeDrawer);
+
+  // Close on Esc
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && sidebar.classList.contains('is-open')) closeDrawer();
   });
+
+  // Close when resizing to desktop
   window.addEventListener('resize', () => {
     if (!isMobile()) closeDrawer();
   });
 
-  // Close drawer when a tab is chosen (on mobile), to show content
+  // Close dropdown when a tab is chosen (on mobile)
   document.querySelectorAll('.sidebar .tab-btn').forEach(btn => {
     btn.addEventListener('click', () => { if (isMobile()) closeDrawer(); });
+  });
+
+  // Close when clicking outside the dropdown on mobile
+  document.addEventListener('click', (e) => {
+    if (!isMobile()) return;
+    if (sidebar.classList.contains('is-open')) {
+      const clickInside = sidebar.contains(e.target) || toggleBtn.contains(e.target);
+      if (!clickInside) closeDrawer();
+    }
   });
 });
 
