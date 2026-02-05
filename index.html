@@ -1,76 +1,59 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<title>Quickslip - Daily Sales Entry</title>
-	<link rel="stylesheet" href="style.css">
-	<meta name="theme-color" content="#222222">
-	<!-- Chart.js pinned and deferred to avoid render-blocking -->
-	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
-	<link rel="manifest" href="manifest.json" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quickslip - Daily Sales Entry</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#222222">
+  <!-- Chart.js pinned and deferred to avoid render-blocking -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+  <link rel="manifest" href="manifest.json" />
   <style>
     /* Ensure any table parts marked hidden are truly hidden */
     #salesTable.table-modern [hidden],
     #salesTable.table-modern tr[hidden],
-    #salesTable.table-modern tfoot[hidden] { display: none !important; }
-
-    /* Added: Styles for the dashboard total donut chart */
-    .total-donut-wrap {
-      position: relative;
-      width: 100%;
-      max-width: 400px;
-      margin: 0 auto;
-    }
-    .donut-center {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 80%;
-      height: 80%;
-      border-radius: 50%;
-      background: #222;
-      color: #50fa7b;
-      font-size: 1.5rem;
-      font-weight: 600;
-      text-align: center;
-    }
-    .donut-subtitle {
-      font-size: 0.8rem;
-      font-weight: 400;
-      color: #aaa;
-      margin-top: 4px;
+    #salesTable.table-modern tfoot[hidden] {
+      display: none !important;
     }
   </style>
 </head>
+
 <body>
-	<noscript style="color:#fff;background:#c00;padding:8px 12px;display:block;">This app requires JavaScript to function properly.</noscript>
+  <noscript style="color:#fff;background:#c00;padding:8px 12px;display:block;">This app requires JavaScript to function
+    properly.</noscript>
   <div class="container">
 
     <!-- Login Modal -->
-    <div id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
-      <form id="loginForm" style="background:#222; color:#fff; padding:32px 24px; border-radius:12px; min-width:320px; box-shadow:0 8px 32px #000a; display:flex; flex-direction:column; gap:16px;">
+    <div id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle"
+      style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
+      <form id="loginForm"
+        style="background:#222; color:#fff; padding:32px 24px; border-radius:12px; min-width:320px; box-shadow:0 8px 32px #000a; display:flex; flex-direction:column; gap:16px;">
         <h2 id="loginTitle" style="margin:0 0 8px 0; color:#7aa2f7;">Login</h2>
-        <input id="loginEmail" type="email" placeholder="Email" autocomplete="email" required style="padding:10px; border-radius:6px; border:1px solid #444;">
-        <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password" required style="padding:10px; border-radius:6px; border:1px solid #444;">
+        <input id="loginEmail" type="email" placeholder="Email" autocomplete="email" required
+          style="padding:10px; border-radius:6px; border:1px solid #444;">
+        <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password" required
+          style="padding:10px; border-radius:6px; border:1px solid #444;">
         <div id="loginError" style="color:#e06c75; min-height:18px; font-size:14px;"></div>
         <button type="submit" class="btn-primary" style="margin-top:8px;">Login</button>
-        <button type="button" id="googleSignInBtn" class="btn-ghost" style="margin-top:4px;">Sign in with Google</button>
+        <button type="button" id="googleSignInBtn" class="btn-ghost" style="margin-top:4px;">Sign in with
+          Google</button>
         <div style="font-size:13px; color:#aaa;">
           No account? <a href="#" id="showRegister" style="color:#7aa2f7;">Register</a>
         </div>
       </form>
     </div>
     <!-- Register Modal -->
-    <div id="registerModal" role="dialog" aria-modal="true" aria-labelledby="registerTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
-      <form id="registerForm" style="background:#222; color:#fff; padding:32px 24px; border-radius:12px; min-width:320px; box-shadow:0 8px 32px #000a; display:flex; flex-direction:column; gap:16px;">
+    <div id="registerModal" role="dialog" aria-modal="true" aria-labelledby="registerTitle"
+      style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
+      <form id="registerForm"
+        style="background:#222; color:#fff; padding:32px 24px; border-radius:12px; min-width:320px; box-shadow:0 8px 32px #000a; display:flex; flex-direction:column; gap:16px;">
         <h2 id="registerTitle" style="margin:0 0 8px 0; color:#7aa2f7;">Register</h2>
-        <input id="registerEmail" type="email" placeholder="Email" autocomplete="email" required style="padding:10px; border-radius:6px; border:1px solid #444;">
-        <input id="registerPassword" type="password" placeholder="Password" autocomplete="new-password" required style="padding:10px; border-radius:6px; border:1px solid #444;">
+        <input id="registerEmail" type="email" placeholder="Email" autocomplete="email" required
+          style="padding:10px; border-radius:6px; border:1px solid #444;">
+        <input id="registerPassword" type="password" placeholder="Password" autocomplete="new-password" required
+          style="padding:10px; border-radius:6px; border:1px solid #444;">
         <div id="registerError" style="color:#e06c75; min-height:18px; font-size:14px;"></div>
         <button type="submit" class="btn-primary" style="margin-top:8px;">Register</button>
         <div style="font-size:13px; color:#aaa;">
@@ -80,41 +63,53 @@
     </div>
 
     <!-- Profile/Account Button (inline, scrolls with page) -->
-    <div id="profileMenuContainer" style="position:relative; width:100%; display:flex; justify-content:flex-end; margin:8px 0 12px;">
-      <button id="profileBtn" aria-haspopup="true" aria-expanded="false" aria-controls="profileDropdown" aria-label="Open account menu" style="background:none;border:none;cursor:pointer;padding:0;">
-        <span id="profileBtnPic" style="display:inline-block;width:38px;height:38px;border-radius:50%;overflow:hidden;background:#222;vertical-align:middle;">
+    <div id="profileMenuContainer"
+      style="position:relative; width:100%; display:flex; justify-content:flex-end; margin:8px 0 12px;">
+      <button id="profileBtn" aria-haspopup="true" aria-expanded="false" aria-controls="profileDropdown"
+        aria-label="Open account menu" style="background:none;border:none;cursor:pointer;padding:0;">
+        <span id="profileBtnPic"
+          style="display:inline-block;width:38px;height:38px;border-radius:50%;overflow:hidden;background:#222;vertical-align:middle;">
           <img id="profileBtnImg" alt="Profile" style="width:100%;height:100%;object-fit:cover;display:none;">
-          <svg id="profileBtnDefault" width="38" height="38" viewBox="0 0 48 48" fill="none" aria-label="Account" style="display:block;">
-            <circle cx="24" cy="24" r="22" stroke="#7aa2f7" stroke-width="2" fill="#222"/>
-            <circle cx="24" cy="20" r="8" fill="#7aa2f7" opacity="0.7"/>
-            <ellipse cx="24" cy="34" rx="12" ry="7" fill="#7aa2f7" opacity="0.2"/>
+          <svg id="profileBtnDefault" width="38" height="38" viewBox="0 0 48 48" fill="none" aria-label="Account"
+            style="display:block;">
+            <circle cx="24" cy="24" r="22" stroke="#7aa2f7" stroke-width="2" fill="#222" />
+            <circle cx="24" cy="20" r="8" fill="#7aa2f7" opacity="0.7" />
+            <ellipse cx="24" cy="34" rx="12" ry="7" fill="#7aa2f7" opacity="0.2" />
           </svg>
         </span>
       </button>
-      <div id="profileDropdown" style="display:none;position:absolute;right:0;top:44px;background:#222;border-radius:10px;box-shadow:0 4px 16px #000a;padding:0;min-width:180px;">
-        <button id="openSettingsBtn" style="width:100%;text-align:left;padding:12px 18px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;border-bottom:1px solid #333;">
+      <div id="profileDropdown"
+        style="display:none;position:absolute;right:0;top:44px;background:#222;border-radius:10px;box-shadow:0 4px 16px #000a;padding:0;min-width:180px;">
+        <button id="openSettingsBtn"
+          style="width:100%;text-align:left;padding:12px 18px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;border-bottom:1px solid #333;">
           ⚙️ Settings
         </button>
-        <button id="logoutBtn" class="btn-ghost" style="width:100%;text-align:left;padding:12px 18px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;">
+        <button id="logoutBtn" class="btn-ghost"
+          style="width:100%;text-align:left;padding:12px 18px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;">
           🚪 Logout
         </button>
       </div>
     </div>
 
     <!-- Mobile drawer toggle button -->
-    <button id="sidebarToggle" type="button" aria-controls="default-sidebar" aria-expanded="false" class="sidebar-toggle">
+    <button id="sidebarToggle" type="button" aria-controls="default-sidebar" aria-expanded="false"
+      class="sidebar-toggle">
       <span class="sr-only">Open sidebar</span>
       <svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" fill="currentColor">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M2 4.75A.75.75 0 0 1 2.75 4h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 4.75ZM2 15.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 1 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75ZM2 10a.75.75 0 0 1 .75-.75h14.5a.75.75 0 1 1 0 1.5H2.75A.75.75 0 0 1 2 10Z"/>
+        <path fill-rule="evenodd" clip-rule="evenodd"
+          d="M2 4.75A.75.75 0 0 1 2.75 4h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 4.75ZM2 15.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 1 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75ZM2 10a.75.75 0 0 1 .75-.75h14.5a.75.75 0 1 1 0 1.5H2.75A.75.75 0 0 1 2 10Z" />
       </svg>
     </button>
 
     <div class="app-layout">
       <aside class="sidebar" id="default-sidebar" aria-label="Sidebar">
         <nav class="tab-bar" role="tablist" aria-label="Main navigation tabs" aria-orientation="vertical">
-          <button class="tab-btn active" id="home-tab" data-tab="home" role="tab" aria-selected="true" aria-controls="home">Home</button>
-          <button class="tab-btn" id="dashboard-tab" data-tab="dashboard" role="tab" aria-selected="false" aria-controls="dashboard">Dashboard</button>
-          <button class="tab-btn" id="reports-tab" data-tab="reports" role="tab" aria-selected="false" aria-controls="reports">Reports</button>
+          <button class="tab-btn active" id="home-tab" data-tab="home" role="tab" aria-selected="true"
+            aria-controls="home">Home</button>
+          <button class="tab-btn" id="dashboard-tab" data-tab="dashboard" role="tab" aria-selected="false"
+            aria-controls="dashboard">Dashboard</button>
+          <button class="tab-btn" id="reports-tab" data-tab="reports" role="tab" aria-selected="false"
+            aria-controls="reports">Reports</button>
         </nav>
       </aside>
 
@@ -126,58 +121,64 @@
         <section id="home" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="home-tab">
           <header>
             <svg width="50" height="50" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none">
-              <rect x="8" y="8" width="48" height="48" rx="8" ry="8" stroke="#50fa7b" stroke-width="3" fill="none"/>
+              <rect x="8" y="8" width="48" height="48" rx="8" ry="8" stroke="#50fa7b" stroke-width="3" fill="none" />
               <g>
                 <path id="bolt" d="M30 18 L38 18 L32 34 L40 34 L26 50 L34 34 L26 34 Z" fill="#50fa7b" />
-                <animate
-                  href="#bolt"
-                  attributeName="fill-opacity"
-                  values="1;0.5;1"
-                  dur="2s"
-                  repeatCount="indefinite"
-                />
+                <animate href="#bolt" attributeName="fill-opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
               </g>
-              <line x1="18" y1="28" x2="46" y2="28" stroke="#50fa7b" stroke-width="2" stroke-linecap="round"/>
-              <line x1="18" y1="36" x2="46" y2="36" stroke="#50fa7b" stroke-width="2" stroke-linecap="round"/>
-              <line x1="18" y1="44" x2="36" y2="44" stroke="#50fa7b" stroke-width="2" stroke-linecap="round"/>
+              <line x1="18" y1="28" x2="46" y2="28" stroke="#50fa7b" stroke-width="2" stroke-linecap="round" />
+              <line x1="18" y1="36" x2="46" y2="36" stroke="#50fa7b" stroke-width="2" stroke-linecap="round" />
+              <line x1="18" y1="44" x2="36" y2="44" stroke="#50fa7b" stroke-width="2" stroke-linecap="round" />
             </svg>
 
             <h1>Quickslip</h1>
             <br>
-            <div class="muted">Quick register for cash tracking</div> 
+            <div class="muted">Quick register for cash tracking</div>
           </header>
 
-          <section class="card" aria-label="Daily sales entry form" style="margin-top: 20px;">
+          <section class="card glass-pane" aria-label="Daily sales entry form" style="margin-top: 20px;">
+
             <form id="saleForm" onsubmit="return false;">
               <div class="grid">
                 <div>
-                  <label for="date">Date</label>
-                  <input id="date" name="date" type="date" required>
+                  <label>Date</label>
+                  <div class="date-selector">
+                    <select id="daySelect" aria-label="Day"></select>
+                    <select id="monthSelect" aria-label="Month"></select>
+                    <select id="yearSelect" aria-label="Year"></select>
+                  </div>
+                  <input id="date" name="date" type="hidden">
                 </div>
+
 
                 <div>
                   <label for="prevChange">Previous day change (₹)</label>
-                  <input id="prevChange" name="prevChange" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
+                  <input id="prevChange" name="prevChange" type="text" inputmode="numeric" pattern="[0-9]*"
+                    title="Only whole numbers are allowed" placeholder="0">
                 </div>
 
                 <div>
                   <label for="todaySales">Today sales (₹)</label>
-                  <input id="todaySales" name="todaySales" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
+                  <input id="todaySales" name="todaySales" type="text" inputmode="numeric" pattern="[0-9]*"
+                    title="Only whole numbers are allowed" placeholder="0">
                 </div>
 
                 <div>
                   <label for="boxActual">Box (Actual cash) (₹)</label>
-                  <input id="boxActual" name="boxActual" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
+                  <input id="boxActual" name="boxActual" type="text" inputmode="numeric" pattern="[0-9]*"
+                    title="Only whole numbers are allowed" placeholder="0">
                 </div>
 
                 <div>
                   <label for="takenSaving">Saving (₹)</label>
-                  <input id="takenSaving" name="takenSaving" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
+                  <input id="takenSaving" name="takenSaving" type="text" inputmode="numeric" pattern="[0-9]*"
+                    title="Only whole numbers are allowed" placeholder="0">
                 </div>
 
                 <div>
                   <label for="leftOver">Left over cash for next day change (₹)</label>
-                  <input id="leftOver" name="leftOver" type="text" inputmode="numeric" pattern="[0-9]*" title="Only whole numbers are allowed" placeholder="0">
+                  <input id="leftOver" name="leftOver" type="text" inputmode="numeric" pattern="[0-9]*"
+                    title="Only whole numbers are allowed" placeholder="0">
                 </div>
 
                 <div class="full">
@@ -208,11 +209,13 @@
         </section>
 
         <!-- Dashboard Tab -->
-        <section id="dashboard" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="dashboard-tab" style="color: var(--accent);">
+        <section id="dashboard" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="dashboard-tab"
+          style="color: var(--accent);">
           <h2>Daily Sales This Month</h2>
           <div style="margin-bottom: 12px;">
             <label for="dashboardMonth" style="font-weight:600;">Select Month:</label>
-            <input type="month" id="dashboardMonth" style="margin-left:10px; padding:4px 8px; border-radius:5px; border:1px solid #7aa2f7; background:#282c34; color:var(--accent); font-weight:600;">
+            <input type="month" id="dashboardMonth"
+              style="margin-left:10px; padding:4px 8px; border-radius:5px; border:1px solid #7aa2f7; background:#282c34; color:var(--accent); font-weight:600;">
           </div>
 
           <!-- Replaced summary with donut containing only the amount -->
@@ -230,15 +233,18 @@
         </section>
 
         <!-- Reports Tab -->
-        <section id="reports" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="reports-tab" style="color: var(--accent); padding: 10px;">
+        <section id="reports" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="reports-tab"
+          style="color: var(--accent); padding: 10px;">
           <h2>Reports</h2>
 
           <!-- Added: Month-Year Filter (icon inside input, month-only) -->
           <div id="reportsFilterBar" class="month-filter-bar">
             <label for="reportsMonth" class="sr-only">Filter month</label>
             <div class="month-input-wrap">
-              <svg class="month-input-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+              <svg class="month-input-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                viewBox="0 0 20 20">
+                <path
+                  d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
               </svg>
               <input id="reportsMonth" type="month" class="month-input" placeholder="Select month" />
             </div>
@@ -267,7 +273,8 @@
                   <!-- Entries will appear here -->
                   <!-- Changed to hidden so the script can toggle it -->
                   <tr id="noDataRow" class="no-data" hidden>
-                    <td colspan="7" style="text-align:center;padding:16px 24px;color:#aab;">No data for selected month.</td>
+                    <td colspan="7" style="text-align:center;padding:16px 24px;color:#aab;">No data for selected month.
+                    </td>
                   </tr>
                 </tbody>
                 <tfoot>
@@ -284,13 +291,16 @@
 
           <div id="importPreviewContainer" style="display:none; margin-top: 10px;">
             <h3>CSV Preview</h3>
-            <table id="importPreviewTable" border="1" cellpadding="5" cellspacing="0" style="width:100%; border-collapse: collapse;"></table>
+            <table id="importPreviewTable" border="1" cellpadding="5" cellspacing="0"
+              style="width:100%; border-collapse: collapse;"></table>
             <button id="confirmImportBtn" class="btn-primary" type="button">
-              <span class="btn-icon" style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('download.png') no-repeat center/contain;margin-right:6px;"></span>
+              <span class="btn-icon"
+                style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('download.png') no-repeat center/contain;margin-right:6px;"></span>
               Confirm Import
             </button>
             <button id="cancelImportBtn" class="btn-ghost" type="button">
-              <span class="btn-icon" style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('upload.png') no-repeat center/contain;margin-right:6px;transform:rotate(180deg);"></span>
+              <span class="btn-icon"
+                style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('upload.png') no-repeat center/contain;margin-right:6px;transform:rotate(180deg);"></span>
               Cancel Import
             </button>
           </div>
@@ -308,13 +318,35 @@
     </div>
 
     <!-- Settings Modal -->
-    <div id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;">
-      <section style="background:#222;color:#fff;padding:32px 24px;border-radius:12px;min-width:320px;box-shadow:0 8px 32px #000a;display:flex;flex-direction:column;gap:16px;max-width:90vw;">
+    <div id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"
+      style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;">
+      <section
+        style="background:#222;color:#fff;padding:32px 24px;border-radius:12px;min-width:320px;box-shadow:0 8px 32px #000a;display:flex;flex-direction:column;gap:16px;max-width:90vw;">
         <h2 id="settingsTitle" style="margin:0 0 8px 0;color:#7aa2f7;">Settings</h2>
-        <p>Coming soon: Customize preferences, theme toggle, backup options.</p>
+
+        <!-- Profile Picture Section -->
+        <div
+          style="display:flex; flex-direction:column; align-items:center; gap:12px; padding:16px; background:#333; border-radius:10px;">
+          <div id="profilePicContainer"
+            style="width:100px; height:100px; border-radius:50%; overflow:hidden; border:2px solid var(--accent); background:#222;">
+            <img id="profilePicImg" style="width:100%; height:100%; object-fit:cover; display:none;">
+            <svg id="profilePicDefault" viewBox="0 0 48 48" fill="none" style="width:100%; height:100%;">
+              <circle cx="24" cy="24" r="22" stroke="#7aa2f7" stroke-width="2" fill="#222" />
+              <circle cx="24" cy="20" r="8" fill="#7aa2f7" opacity="0.7" />
+              <ellipse cx="24" cy="34" rx="12" ry="7" fill="#7aa2f7" opacity="0.2" />
+            </svg>
+          </div>
+          <input type="file" id="profilePicInput" accept="image/*" style="font-size:12px;">
+          <button id="saveProfilePicBtn" class="btn-primary" style="padding:4px 12px; font-size:14px;">Save
+            Picture</button>
+          <div id="profilePicStatus" style="font-size:12px; color:var(--success);"></div>
+        </div>
+
+        <p>Theme settings and other preferences coming soon.</p>
         <button id="closeSettingsBtn" class="btn-ghost" style="margin-top:12px;">Close</button>
       </section>
     </div>
+
 
   </div>
 
@@ -332,14 +364,14 @@
 
       const profileBtn = document.getElementById('profileBtn');
       const profileDropdown = document.getElementById('profileDropdown');
-      profileBtn.addEventListener('click', function(e) {
+      profileBtn.addEventListener('click', function (e) {
         e.stopPropagation();
         const show = profileDropdown.style.display !== 'block';
         profileDropdown.style.display = show ? 'block' : 'none';
         profileBtn.setAttribute('aria-expanded', show ? 'true' : 'false');
       });
       // Hide dropdown on click outside
-      document.addEventListener('click', function(e) {
+      document.addEventListener('click', function (e) {
         if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
           profileDropdown.style.display = 'none';
           profileBtn.setAttribute('aria-expanded', 'false');
@@ -350,11 +382,11 @@
       const openSettingsBtn = document.getElementById('openSettingsBtn');
       const settingsModal = document.getElementById('settingsModal');
       const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-      openSettingsBtn.addEventListener('click', function() {
+      openSettingsBtn.addEventListener('click', function () {
         settingsModal.style.display = 'flex';
         profileDropdown.style.display = 'none';
       });
-      closeSettingsBtn.addEventListener('click', function() {
+      closeSettingsBtn.addEventListener('click', function () {
         settingsModal.style.display = 'none';
       });
 
@@ -447,7 +479,7 @@
         const t = s.trim();
         // Try ISO YYYY-MM-DD
         if (/^\d{4}-\d{2}-\d{2}$/.test(t)) {
-          const [y,m,d] = t.split('-').map(Number);
+          const [y, m, d] = t.split('-').map(Number);
           return new Date(y, m - 1, d);
         }
         // Try DD/MM/YYYY or DD-MM-YYYY
@@ -484,7 +516,7 @@
           if (!cells || cells.length === 0) return;
           const dateText = (cells[0].textContent || '').trim();
           const dt = parseDateString(dateText);
-          const matches = !ym || (dt && `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}` === ym);
+          const matches = !ym || (dt && `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}` === ym);
 
           tr.hidden = !matches;
 
@@ -506,7 +538,7 @@
       // Default to current month if empty
       if (!monthInput.value) {
         const now = new Date();
-        monthInput.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+        monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       }
       applyMonthFilter();
 
@@ -543,14 +575,14 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-                label: function(tooltipItem) {
-                  const value = tooltipItem.raw;
-                  return value ? `₹${value.toFixed(2)}` : '';
-                }
+              label: function (tooltipItem) {
+                const value = tooltipItem.raw;
+                return value ? `₹${value.toFixed(2)}` : '';
               }
             }
           }
-        });
+        }
+      });
 
       function updateDonutChart(monthlyTotal) {
         const amountEl = document.getElementById('monthlySalesAmount');
@@ -606,4 +638,5 @@
     });
   </script>
 </body>
+
 </html>

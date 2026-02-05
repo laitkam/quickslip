@@ -55,7 +55,11 @@ const els = {
   confirmImportBtn: document.getElementById('confirmImportBtn'),
   cancelImportBtn: document.getElementById('cancelImportBtn'),
   backupReminder: document.getElementById('backupReminder'),
+  daySelect: document.getElementById('daySelect'),
+  monthSelect: document.getElementById('monthSelect'),
+  yearSelect: document.getElementById('yearSelect'),
 };
+
 
 let entries = [];
 let editIndex = -1;
@@ -81,7 +85,13 @@ function setToday() {
   const m = String(today.getMonth() + 1).padStart(2, '0');
   const d = String(today.getDate()).padStart(2, '0');
   els.date.value = `${y}-${m}-${d}`;
+
+  // Update selects
+  if (els.daySelect) els.daySelect.value = parseInt(d, 10);
+  if (els.monthSelect) els.monthSelect.value = parseInt(m, 10);
+  if (els.yearSelect) els.yearSelect.value = y;
 }
+
 function setPrevChangeFromLastEntry() {
   if (entries.length === 0) {
     els.prevChange.value = '';
@@ -421,7 +431,6 @@ function renderTable() {
 // Edit & Delete
 function loadEntryForEdit(index) {
   const e = entries[index];
-  els.date.value = e.date;
   els.prevChange.value = fromPaise(e.prevChange);
   els.todaySales.value = fromPaise(e.todaySales);
   els.boxActual.value = fromPaise(e.boxActual);
@@ -429,6 +438,13 @@ function loadEntryForEdit(index) {
   els.leftOver.value = fromPaise(e.leftOver);
   els.expectedBox.value = fromPaise(e.expectedBox);
   els.variance.value = fromPaise(e.variance);
+
+  // Update date selects
+  const [y, m, d] = e.date.split('-').map(Number);
+  if (els.daySelect) els.daySelect.value = d;
+  if (els.monthSelect) els.monthSelect.value = m;
+  if (els.yearSelect) els.yearSelect.value = y;
+
 
   editIndex = index;
   els.saveBtn.textContent = 'Update Entry';
@@ -867,7 +883,7 @@ function setupAuthUI() {
   showRegister.onclick = (e) => { e.preventDefault(); showRegisterModal(); };
   showLogin.onclick = (e) => { e.preventDefault(); showLoginModal(); };
 
-  loginForm.onsubmit = function(e) {
+  loginForm.onsubmit = function (e) {
     e.preventDefault();
     loginError.textContent = '';
     const email = document.getElementById('loginEmail').value.trim();
@@ -875,7 +891,7 @@ function setupAuthUI() {
     firebaseAuth.signInWithEmailAndPassword(email, password)
       .catch(err => { loginError.textContent = err.message; });
   };
-  registerForm.onsubmit = function(e) {
+  registerForm.onsubmit = function (e) {
     e.preventDefault();
     registerError.textContent = '';
     const email = document.getElementById('registerEmail').value.trim();
@@ -883,11 +899,11 @@ function setupAuthUI() {
     firebaseAuth.createUserWithEmailAndPassword(email, password)
       .catch(err => { registerError.textContent = err.message; });
   };
-  logoutBtn.onclick = function() {
+  logoutBtn.onclick = function () {
     firebaseAuth.signOut();
   };
 
-  googleSignInBtn.onclick = function(e) {
+  googleSignInBtn.onclick = function (e) {
     e.preventDefault();
     loginError.textContent = '';
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -934,19 +950,78 @@ function setupAuthUI() {
   document.head.appendChild(style);
 })();
 
+// --- Date Select Initialization ---
+function initDateSelects() {
+  if (!els.daySelect || !els.monthSelect || !els.yearSelect) return;
+
+  // Populate days
+  for (let i = 1; i <= 31; i++) {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = i;
+    els.daySelect.appendChild(opt);
+  }
+
+  // Populate months
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  months.forEach((m, i) => {
+    const opt = document.createElement('option');
+    opt.value = i + 1; opt.textContent = m;
+    els.monthSelect.appendChild(opt);
+  });
+
+  // Populate years (last 5 years)
+  const cy = new Date().getFullYear();
+  for (let i = cy; i >= cy - 5; i--) {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = i;
+    els.yearSelect.appendChild(opt);
+  }
+
+  function updateHiddenDate() {
+    const d = String(els.daySelect.value).padStart(2, '0');
+    const m = String(els.monthSelect.value).padStart(2, '0');
+    const y = els.yearSelect.value;
+    els.date.value = `${y}-${m}-${d}`;
+  }
+
+  [els.daySelect, els.monthSelect, els.yearSelect].forEach(s => {
+    s.addEventListener('change', updateHiddenDate);
+  });
+}
+
 // Init
+initDateSelects();
 loadFromLocalStorage();
 setupDashboardMonthPicker();
 renderTable();
 setTodayAndPrevChange();
 validateAndCalc();
 
+
+// --- Profile Image Sync ---
+function syncProfileIcons() {
+  const pic = localStorage.getItem('profilePicDataUrl');
+  const topImg = document.getElementById('profileBtnImg');
+  const topDef = document.getElementById('profileBtnDefault');
+
+  if (pic) {
+    if (topImg) {
+      topImg.src = pic;
+      topImg.style.display = 'block';
+    }
+    if (topDef) topDef.style.display = 'none';
+  }
+}
+
+syncProfileIcons();
+
+
 document.addEventListener('DOMContentLoaded', function () {
   // Settings modal logic
   const openSettingsBtn = document.getElementById('openSettingsBtn');
   const settingsModal = document.getElementById('settingsModal');
   const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-  openSettingsBtn.addEventListener('click', function() {
+  openSettingsBtn.addEventListener('click', function () {
     settingsModal.style.display = 'flex';
     profileDropdown.style.display = 'none';
     // Load profile pic if set
@@ -968,18 +1043,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const input = document.getElementById('profilePicInput');
     if (input) input.value = '';
   });
-  closeSettingsBtn.addEventListener('click', function() {
+  closeSettingsBtn.addEventListener('click', function () {
     settingsModal.style.display = 'none';
   });
 
   // Profile picture change logic (UI only, localStorage)
   let profilePicTempDataUrl = null;
   const profilePicInput = document.getElementById('profilePicInput');
-  profilePicInput.addEventListener('change', function() {
+  profilePicInput.addEventListener('change', function () {
     const file = this.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       profilePicTempDataUrl = e.target.result;
       const img = document.getElementById('profilePicImg');
       const def = document.getElementById('profilePicDefault');
@@ -995,16 +1070,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Save profile picture button
   const saveProfilePicBtn = document.getElementById('saveProfilePicBtn');
-  saveProfilePicBtn.addEventListener('click', function(e) {
+  saveProfilePicBtn.addEventListener('click', function (e) {
     e.preventDefault();
     const status = document.getElementById('profilePicStatus');
     if (profilePicTempDataUrl) {
       localStorage.setItem('profilePicDataUrl', profilePicTempDataUrl);
       if (status) status.textContent = 'Profile picture saved!';
       profilePicTempDataUrl = null;
+      syncProfileIcons(); // Update top bar immediately
     } else {
       if (status) status.textContent = 'Please select a picture first.';
     }
+
   });
 
 });

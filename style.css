@@ -942,44 +942,54 @@ input[type="month"]::-webkit-calendar-picker-indicator {
   opacity: 0.85;
 }
 
-/* Container for the donut chart */
-.total-donut-wrap {
-  position: relative;
-  max-width: 50px; /* try 60px or even 50px if needed */
-  width: 2cm;          /* ≈ 75.6px, close to 2 cm on most displays */
-  margin: 6px auto 0;
+/* Glassmorphism utility */
+.glass-pane {
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 var(--shadow);
 }
 
-.total-donut-wrap canvas {
-  width: 100% !important;
-  height: auto !important;
-  aspect-ratio: 1 / 1;
+/* Modern Date Selection (Separate Selects) */
+.date-selector {
+  display: flex;
+  gap: 8px;
+}
+.date-selector select {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #44475a;
+  border-radius: 8px;
+  background: #282c34;
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+/* Fix Donut chart sizing to be consistent */
+.total-donut-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 250px;
+  margin: 15px auto;
 }
 
 .donut-center {
   position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
   pointer-events: none;
 }
 
 .donut-amount {
+  font-size: 1.25rem;
   font-weight: 800;
-  font-size: 12px;
-  color: #fff;
+  color: var(--accent);
 }
 
 .donut-subtitle {
-  margin-top: 2px;
-  font-size: 0.55rem; /* smaller subtitle */
-  color: #aab;
-}
-
-/* Optional: dark background and modern font */
-body {
-  background-color: #2f3640;
-  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
