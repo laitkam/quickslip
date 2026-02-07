@@ -453,10 +453,8 @@ function loadEntryForEdit(index) {
   lastChanged = null;
 
   // Switch to Home tab for editing
-  tabs.forEach(t => t.classList.remove('active'));
-  contents.forEach(c => c.classList.remove('active'));
-  document.querySelector('.tab-btn[data-tab="home"]').classList.add('active');
-  document.getElementById('home').classList.add('active');
+  activateTab('home');
+
 }
 function deleteEntry(index) {
   if (confirm(`Delete entry for ${formatDisplayDate(entries[index].date)}?`)) {
@@ -631,138 +629,32 @@ els.cancelImportBtn.addEventListener('click', () => {
 });
 
 // Tab system
-const tabs = document.querySelectorAll('.tab-btn');
+const navItems = document.querySelectorAll('.nav-item');
 const contents = document.querySelectorAll('.tab-content');
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    tabs.forEach(t => t.classList.remove('active'));
-    contents.forEach(c => c.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById(tab.dataset.tab).classList.add('active');
+
+function activateTab(targetTab) {
+  navItems.forEach(item => {
+    const isActive = item.dataset.tab === targetTab;
+    item.classList.toggle('active', isActive);
+    item.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
+
+  contents.forEach(content => {
+    content.classList.toggle('active', content.id === targetTab);
+  });
+}
+
+navItems.forEach(item => {
+  item.addEventListener('click', () => activateTab(item.dataset.tab));
 });
 
+
+// Initial tab state
 document.addEventListener('DOMContentLoaded', () => {
-  const toggleBtn = document.getElementById('sidebarToggle');
-  const sidebar = document.getElementById('default-sidebar');
-  const backdrop = document.getElementById('sidebarBackdrop');
-  const isMobile = () => window.matchMedia('(max-width: 900px)').matches;
-
-  if (!sidebar || !toggleBtn) return;
-
-  // Icons: hamburger <-> close (X)
-  const ICON_HAMBURGER = `
-    <span class="sr-only">Open menu</span>
-    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <path d="M3 6h18M3 12h18M3 18h18"/>
-    </svg>`;
-  const ICON_CLOSE = `
-    <span class="sr-only">Close menu</span>
-    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <path d="M6 6l12 12M18 6L6 18"/>
-    </svg>`;
-
-  function setToggleIcon(open) {
-    toggleBtn.innerHTML = open ? ICON_CLOSE : ICON_HAMBURGER;
-  }
-  setToggleIcon(false);
-
-  function openDrawer() {
-    sidebar.classList.add('is-open');
-    toggleBtn.setAttribute('aria-expanded', 'true');
-    setToggleIcon(true);
-    if (backdrop) { backdrop.hidden = false; backdrop.classList.add('show'); }
-    document.body.style.overflow = 'hidden';
-  }
-  function closeDrawer() {
-    sidebar.classList.remove('is-open');
-    toggleBtn.setAttribute('aria-expanded', 'false');
-    setToggleIcon(false);
-    if (backdrop) { backdrop.classList.remove('show'); backdrop.hidden = true; }
-    document.body.style.overflow = '';
-  }
-  function toggleDrawer() {
-    if (sidebar.classList.contains('is-open')) closeDrawer(); else openDrawer();
-  }
-
-  toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleDrawer(); });
-  backdrop?.addEventListener('click', closeDrawer);
-
-  // Close on Esc
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) closeDrawer();
-  });
-
-  // Close when resizing to desktop
-  window.addEventListener('resize', () => {
-    if (!isMobile()) closeDrawer();
-  });
-
-  // Close dropdown when a tab is chosen (on mobile)
-  document.querySelectorAll('.sidebar .tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => { if (isMobile()) closeDrawer(); });
-  });
-
-  // Close when clicking outside the dropdown on mobile
-  document.addEventListener('click', (e) => {
-    if (!isMobile()) return;
-    if (sidebar.classList.contains('is-open')) {
-      const clickInside = sidebar.contains(e.target) || toggleBtn.contains(e.target);
-      if (!clickInside) closeDrawer();
-    }
-  });
+  const activeTab = document.querySelector('.nav-item.active')?.dataset.tab || 'home';
+  activateTab(activeTab);
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  const tablist = document.querySelector('.tab-bar[role="tablist"]');
-  if (!tablist || tablist.dataset.vnavInit === '1') return;
-  tablist.dataset.vnavInit = '1';
-
-  const tabs = Array.from(tablist.querySelectorAll('.tab-btn[role="tab"]'));
-  const panels = tabs.map(t => document.getElementById(t.getAttribute('aria-controls')));
-  const vertical = tablist.getAttribute('aria-orientation') === 'vertical';
-
-  function activateTab(btn, focusPanel = false) {
-    tabs.forEach((t, i) => {
-      const on = t === btn;
-      t.classList.toggle('active', on);
-      t.setAttribute('aria-selected', on ? 'true' : 'false');
-      t.tabIndex = on ? 0 : -1;
-      const p = panels[i];
-      if (p) {
-        p.classList.toggle('active', on);
-        if (on && focusPanel) p.focus({ preventScroll: true });
-      }
-    });
-  }
-
-  tabs.forEach(btn => {
-    btn.addEventListener('click', () => activateTab(btn, true));
-  });
-
-  tablist.addEventListener('keydown', e => {
-    const i = tabs.indexOf(document.activeElement);
-    if (i === -1) return;
-
-    const prevKey = vertical ? 'ArrowUp' : 'ArrowLeft';
-    const nextKey = vertical ? 'ArrowDown' : 'ArrowRight';
-
-    let targetIndex = null;
-    if (e.key === prevKey) targetIndex = (i - 1 + tabs.length) % tabs.length;
-    else if (e.key === nextKey) targetIndex = (i + 1) % tabs.length;
-    else if (e.key === 'Home') targetIndex = 0;
-    else if (e.key === 'End') targetIndex = tabs.length - 1;
-
-    if (targetIndex !== null) {
-      e.preventDefault();
-      tabs[targetIndex].focus();
-      activateTab(tabs[targetIndex], true);
-    }
-  });
-
-  // Ensure exactly one active on load
-  activateTab(tabs.find(t => t.classList.contains('active')) || tabs[0], false);
-});
 
 // --- Firebase Auth & Firestore Setup ---
 const firebaseConfig = {
@@ -955,9 +847,11 @@ function initDateSelects() {
   if (!els.daySelect || !els.monthSelect || !els.yearSelect) return;
 
   // Populate days
+  // Populate days
   for (let i = 1; i <= 31; i++) {
     const opt = document.createElement('option');
-    opt.value = i; opt.textContent = i;
+    const val = String(i);
+    opt.value = val; opt.textContent = i;
     els.daySelect.appendChild(opt);
   }
 
@@ -965,7 +859,8 @@ function initDateSelects() {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   months.forEach((m, i) => {
     const opt = document.createElement('option');
-    opt.value = i + 1; opt.textContent = m;
+    const val = String(i + 1);
+    opt.value = val; opt.textContent = m;
     els.monthSelect.appendChild(opt);
   });
 
@@ -973,7 +868,8 @@ function initDateSelects() {
   const cy = new Date().getFullYear();
   for (let i = cy; i >= cy - 5; i--) {
     const opt = document.createElement('option');
-    opt.value = i; opt.textContent = i;
+    const val = String(i);
+    opt.value = val; opt.textContent = i;
     els.yearSelect.appendChild(opt);
   }
 
@@ -987,15 +883,10 @@ function initDateSelects() {
   [els.daySelect, els.monthSelect, els.yearSelect].forEach(s => {
     s.addEventListener('change', updateHiddenDate);
   });
-}
 
-// Init
-initDateSelects();
-loadFromLocalStorage();
-setupDashboardMonthPicker();
-renderTable();
-setTodayAndPrevChange();
-validateAndCalc();
+  // Initial sync
+  updateHiddenDate();
+}
 
 
 // --- Profile Image Sync ---
@@ -1013,7 +904,17 @@ function syncProfileIcons() {
   }
 }
 
-syncProfileIcons();
+// --- Master Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+  initDateSelects();
+  loadFromLocalStorage();
+  setupDashboardMonthPicker();
+  renderTable();
+  setTodayAndPrevChange();
+  validateAndCalc();
+  syncProfileIcons();
+});
+
 
 
 document.addEventListener('DOMContentLoaded', function () {

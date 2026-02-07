@@ -91,261 +91,256 @@
       </div>
     </div>
 
-    <!-- Mobile drawer toggle button -->
-    <button id="sidebarToggle" type="button" aria-controls="default-sidebar" aria-expanded="false"
-      class="sidebar-toggle">
-      <span class="sr-only">Open sidebar</span>
-      <svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" fill="currentColor">
-        <path fill-rule="evenodd" clip-rule="evenodd"
-          d="M2 4.75A.75.75 0 0 1 2.75 4h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 4.75ZM2 15.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 1 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75ZM2 10a.75.75 0 0 1 .75-.75h14.5a.75.75 0 1 1 0 1.5H2.75A.75.75 0 0 1 2 10Z" />
-      </svg>
-    </button>
 
-    <div class="app-layout">
-      <aside class="sidebar" id="default-sidebar" aria-label="Sidebar">
-        <nav class="tab-bar" role="tablist" aria-label="Main navigation tabs" aria-orientation="vertical">
-          <button class="tab-btn active" id="home-tab" data-tab="home" role="tab" aria-selected="true"
-            aria-controls="home">Home</button>
-          <button class="tab-btn" id="dashboard-tab" data-tab="dashboard" role="tab" aria-selected="false"
-            aria-controls="dashboard">Dashboard</button>
-          <button class="tab-btn" id="reports-tab" data-tab="reports" role="tab" aria-selected="false"
-            aria-controls="reports">Reports</button>
-        </nav>
-      </aside>
+    <!-- Content Area -->
+    <main class="content-area" role="main" style="padding-bottom: 80px;">
 
-      <!-- Backdrop for mobile drawer -->
-      <div id="sidebarBackdrop" class="drawer-backdrop" hidden></div>
+      <!-- Home Tab -->
+      <section id="home" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="home-tab">
+        <header>
+          <svg width="50" height="50" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none">
+            <rect x="8" y="8" width="48" height="48" rx="8" ry="8" stroke="#50fa7b" stroke-width="3" fill="none" />
+            <g>
+              <path id="bolt" d="M30 18 L38 18 L32 34 L40 34 L26 50 L34 34 L26 34 Z" fill="#50fa7b" />
+              <animate href="#bolt" attributeName="fill-opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
+            </g>
+            <line x1="18" y1="28" x2="46" y2="28" stroke="#50fa7b" stroke-width="2" stroke-linecap="round" />
+            <line x1="18" y1="36" x2="46" y2="36" stroke="#50fa7b" stroke-width="2" stroke-linecap="round" />
+            <line x1="18" y1="44" x2="36" y2="44" stroke="#50fa7b" stroke-width="2" stroke-linecap="round" />
+          </svg>
 
-      <main class="content-area" role="main">
-        <!-- Home Tab -->
-        <section id="home" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="home-tab">
-          <header>
-            <svg width="50" height="50" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none">
-              <rect x="8" y="8" width="48" height="48" rx="8" ry="8" stroke="#50fa7b" stroke-width="3" fill="none" />
-              <g>
-                <path id="bolt" d="M30 18 L38 18 L32 34 L40 34 L26 50 L34 34 L26 34 Z" fill="#50fa7b" />
-                <animate href="#bolt" attributeName="fill-opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
-              </g>
-              <line x1="18" y1="28" x2="46" y2="28" stroke="#50fa7b" stroke-width="2" stroke-linecap="round" />
-              <line x1="18" y1="36" x2="46" y2="36" stroke="#50fa7b" stroke-width="2" stroke-linecap="round" />
-              <line x1="18" y1="44" x2="36" y2="44" stroke="#50fa7b" stroke-width="2" stroke-linecap="round" />
-            </svg>
+          <h1>Quickslip</h1>
+          <br>
+          <div class="muted">Quick register for cash tracking</div>
+        </header>
 
-            <h1>Quickslip</h1>
-            <br>
-            <div class="muted">Quick register for cash tracking</div>
-          </header>
+        <section class="card glass-pane" aria-label="Daily sales entry form" style="margin-top: 20px;">
 
-          <section class="card glass-pane" aria-label="Daily sales entry form" style="margin-top: 20px;">
-
-            <form id="saleForm" onsubmit="return false;">
-              <div class="grid">
-                <div>
-                  <label>Date</label>
-                  <div class="date-selector">
-                    <select id="daySelect" aria-label="Day"></select>
-                    <select id="monthSelect" aria-label="Month"></select>
-                    <select id="yearSelect" aria-label="Year"></select>
-                  </div>
-                  <input id="date" name="date" type="hidden">
+          <form id="saleForm" onsubmit="return false;">
+            <div class="grid">
+              <div>
+                <label>Date</label>
+                <div class="date-selector">
+                  <select id="daySelect" aria-label="Day"></select>
+                  <select id="monthSelect" aria-label="Month"></select>
+                  <select id="yearSelect" aria-label="Year"></select>
                 </div>
-
-
-                <div>
-                  <label for="prevChange">Previous day change (₹)</label>
-                  <input id="prevChange" name="prevChange" type="text" inputmode="numeric" pattern="[0-9]*"
-                    title="Only whole numbers are allowed" placeholder="0">
-                </div>
-
-                <div>
-                  <label for="todaySales">Today sales (₹)</label>
-                  <input id="todaySales" name="todaySales" type="text" inputmode="numeric" pattern="[0-9]*"
-                    title="Only whole numbers are allowed" placeholder="0">
-                </div>
-
-                <div>
-                  <label for="boxActual">Box (Actual cash) (₹)</label>
-                  <input id="boxActual" name="boxActual" type="text" inputmode="numeric" pattern="[0-9]*"
-                    title="Only whole numbers are allowed" placeholder="0">
-                </div>
-
-                <div>
-                  <label for="takenSaving">Saving (₹)</label>
-                  <input id="takenSaving" name="takenSaving" type="text" inputmode="numeric" pattern="[0-9]*"
-                    title="Only whole numbers are allowed" placeholder="0">
-                </div>
-
-                <div>
-                  <label for="leftOver">Left over cash for next day change (₹)</label>
-                  <input id="leftOver" name="leftOver" type="text" inputmode="numeric" pattern="[0-9]*"
-                    title="Only whole numbers are allowed" placeholder="0">
-                </div>
-
-                <div class="full">
-                  <label>Expected Total (Previous change + Today sales) (₹)</label>
-                  <input id="expectedBox" readonly type="text">
-                </div>
-
-                <div class="full">
-                  <label>More or Less (₹)</label>
-                  <input id="variance" readonly type="text">
-                </div>
+                <input id="date" name="date" type="hidden">
               </div>
 
-              <div class="row">
-                <div>
-                  <div id="status" class="status ok" role="status" aria-live="polite">All inputs look good.</div>
-                  <div class="note">Tip: enter whole numbers only. Decimals are not allowed.</div>
-                </div>
 
-                <div class="buttons">
-                  <button class="btn-ghost" id="resetBtn" type="button">Reset</button>
-                  <button class="btn-primary" id="saveBtn" type="button">Save Entry</button>
-                </div>
+              <div>
+                <label for="prevChange">Previous day change (₹)</label>
+                <input id="prevChange" name="prevChange" type="text" inputmode="numeric" pattern="[0-9]*"
+                  title="Only whole numbers are allowed" placeholder="0">
               </div>
-            </form>
-          </section>
 
+              <div>
+                <label for="todaySales">Today sales (₹)</label>
+                <input id="todaySales" name="todaySales" type="text" inputmode="numeric" pattern="[0-9]*"
+                  title="Only whole numbers are allowed" placeholder="0">
+              </div>
+
+              <div>
+                <label for="boxActual">Box (Actual cash) (₹)</label>
+                <input id="boxActual" name="boxActual" type="text" inputmode="numeric" pattern="[0-9]*"
+                  title="Only whole numbers are allowed" placeholder="0">
+              </div>
+
+              <div>
+                <label for="takenSaving">Saving (₹)</label>
+                <input id="takenSaving" name="takenSaving" type="text" inputmode="numeric" pattern="[0-9]*"
+                  title="Only whole numbers are allowed" placeholder="0">
+              </div>
+
+              <div>
+                <label for="leftOver">Left over cash for next day change (₹)</label>
+                <input id="leftOver" name="leftOver" type="text" inputmode="numeric" pattern="[0-9]*"
+                  title="Only whole numbers are allowed" placeholder="0">
+              </div>
+
+              <div class="full">
+                <label>Expected Total (Previous change + Today sales) (₹)</label>
+                <input id="expectedBox" readonly type="text">
+              </div>
+
+              <div class="full">
+                <label>More or Less (₹)</label>
+                <input id="variance" readonly type="text">
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <div id="status" class="status ok" role="status" aria-live="polite">All inputs look good.</div>
+                <div class="note">Tip: enter whole numbers only. Decimals are not allowed.</div>
+              </div>
+
+              <div class="buttons">
+                <button class="btn-ghost" id="resetBtn" type="button">Reset</button>
+                <button class="btn-primary" id="saveBtn" type="button">Save Entry</button>
+              </div>
+            </div>
+          </form>
         </section>
 
-        <!-- Dashboard Tab -->
-        <section id="dashboard" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="dashboard-tab"
-          style="color: var(--accent);">
-          <h2>Daily Sales This Month</h2>
-          <div style="margin-bottom: 12px;">
-            <label for="dashboardMonth" style="font-weight:600;">Select Month:</label>
-            <input type="month" id="dashboardMonth"
-              style="margin-left:10px; padding:4px 8px; border-radius:5px; border:1px solid #7aa2f7; background:#282c34; color:var(--accent); font-weight:600;">
-          </div>
+      </section>
 
-          <!-- Replaced summary with donut containing only the amount -->
-          <div class="total-donut-wrap" aria-live="polite">
-            <canvas id="totalDonutChart" aria-label="Total sales doughnut"></canvas>
-            <div class="donut-center">
-              <div id="monthlySalesAmount" class="donut-amount">₹0.00</div>
-              <div class="donut-subtitle">Total sales</div>
-            </div>
-          </div>
-
-          <section id="chartSection" style="margin-top:20px; height: 300px;">
-            <canvas id="monthlySalesChart" aria-label="Daily sales line chart"></canvas>
-          </section>
-        </section>
-
-        <!-- Reports Tab -->
-        <section id="reports" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="reports-tab"
-          style="color: var(--accent); padding: 10px;">
-          <h2>Reports</h2>
-
-          <!-- Added: Month-Year Filter (icon inside input, month-only) -->
-          <div id="reportsFilterBar" class="month-filter-bar">
-            <label for="reportsMonth" class="sr-only">Filter month</label>
-            <div class="month-input-wrap">
-              <svg class="month-input-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                viewBox="0 0 20 20">
-                <path
-                  d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-              </svg>
-              <input id="reportsMonth" type="month" class="month-input" placeholder="Select month" />
-            </div>
-            <button id="reportsMonthClear" type="button" class="btn-ghost">Clear</button>
-            <span id="reportsMonthStatus" class="muted"></span>
-          </div>
-
-          <section class="card" aria-label="Saved sales entries" style="margin-top: 20px;">
-            <div class="table-shell">
-              <table id="salesTable" class="table-modern" aria-describedby="tableDesc">
-                <caption id="tableDesc" style="text-align:left; padding-bottom:8px; color: var(--text-muted);">
-                  Entries with edit and delete options
-                </caption>
-                <thead class="thead-modern">
-                  <tr>
-                    <th>Date</th>
-                    <th>Today Sales (₹)</th>
-                    <th>Box (₹)</th>
-                    <th>Prev Day Change (₹)</th>
-                    <th>More or Less (₹)</th>
-                    <th>Next Day Change (₹)</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- Entries will appear here -->
-                  <!-- Changed to hidden so the script can toggle it -->
-                  <tr id="noDataRow" class="no-data" hidden>
-                    <td colspan="7" style="text-align:center;padding:16px 24px;color:#aab;">No data for selected month.
-                    </td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr class="totals-row tfoot-modern">
-                    <td>Total</td>
-                    <td id="totalSales">0.00</td>
-                    <td id="totalBox">0.00</td>
-                    <td colspan="4"></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </section>
-
-          <div id="importPreviewContainer" style="display:none; margin-top: 10px;">
-            <h3>CSV Preview</h3>
-            <table id="importPreviewTable" border="1" cellpadding="5" cellspacing="0"
-              style="width:100%; border-collapse: collapse;"></table>
-            <button id="confirmImportBtn" class="btn-primary" type="button">
-              <span class="btn-icon"
-                style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('download.png') no-repeat center/contain;margin-right:6px;"></span>
-              Confirm Import
-            </button>
-            <button id="cancelImportBtn" class="btn-ghost" type="button">
-              <span class="btn-icon"
-                style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('upload.png') no-repeat center/contain;margin-right:6px;transform:rotate(180deg);"></span>
-              Cancel Import
-            </button>
-          </div>
-
-          <div id="backupReminder" style="margin-top:15px; color:orange; font-weight:bold; display:none;">
-            Remember to export your sales data regularly to avoid losing it!
-          </div>
-
-          <button type="button" id="exportCsvBtn">Export CSV</button>
-          <input type="file" id="importCsvInput" accept=".csv" style="display:none" />
-          <button type="button" id="importCsvBtn">Import CSV</button>
-
-        </section>
-      </main> <!-- Added: close main -->
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"
-      style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;">
-      <section
-        style="background:#222;color:#fff;padding:32px 24px;border-radius:12px;min-width:320px;box-shadow:0 8px 32px #000a;display:flex;flex-direction:column;gap:16px;max-width:90vw;">
-        <h2 id="settingsTitle" style="margin:0 0 8px 0;color:#7aa2f7;">Settings</h2>
-
-        <!-- Profile Picture Section -->
-        <div
-          style="display:flex; flex-direction:column; align-items:center; gap:12px; padding:16px; background:#333; border-radius:10px;">
-          <div id="profilePicContainer"
-            style="width:100px; height:100px; border-radius:50%; overflow:hidden; border:2px solid var(--accent); background:#222;">
-            <img id="profilePicImg" style="width:100%; height:100%; object-fit:cover; display:none;">
-            <svg id="profilePicDefault" viewBox="0 0 48 48" fill="none" style="width:100%; height:100%;">
-              <circle cx="24" cy="24" r="22" stroke="#7aa2f7" stroke-width="2" fill="#222" />
-              <circle cx="24" cy="20" r="8" fill="#7aa2f7" opacity="0.7" />
-              <ellipse cx="24" cy="34" rx="12" ry="7" fill="#7aa2f7" opacity="0.2" />
-            </svg>
-          </div>
-          <input type="file" id="profilePicInput" accept="image/*" style="font-size:12px;">
-          <button id="saveProfilePicBtn" class="btn-primary" style="padding:4px 12px; font-size:14px;">Save
-            Picture</button>
-          <div id="profilePicStatus" style="font-size:12px; color:var(--success);"></div>
+      <!-- Dashboard Tab -->
+      <section id="dashboard" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="dashboard-tab"
+        style="color: var(--accent);">
+        <h2>Daily Sales This Month</h2>
+        <div style="margin-bottom: 12px;">
+          <label for="dashboardMonth" style="font-weight:600;">Select Month:</label>
+          <input type="month" id="dashboardMonth"
+            style="margin-left:10px; padding:4px 8px; border-radius:5px; border:1px solid #7aa2f7; background:#282c34; color:var(--accent); font-weight:600;">
         </div>
 
-        <p>Theme settings and other preferences coming soon.</p>
-        <button id="closeSettingsBtn" class="btn-ghost" style="margin-top:12px;">Close</button>
+        <!-- Replaced summary with donut containing only the amount -->
+        <div class="total-donut-wrap" aria-live="polite">
+          <canvas id="totalDonutChart" aria-label="Total sales doughnut"></canvas>
+          <div class="donut-center">
+            <div id="monthlySalesAmount" class="donut-amount">₹0.00</div>
+            <div class="donut-subtitle">Total sales</div>
+          </div>
+        </div>
+
+        <section id="chartSection" style="margin-top:20px; height: 300px;">
+          <canvas id="monthlySalesChart" aria-label="Daily sales line chart"></canvas>
+        </section>
       </section>
-    </div>
+
+      <!-- Reports Tab -->
+      <section id="reports" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="reports-tab"
+        style="color: var(--accent); padding: 10px;">
+        <h2>Reports</h2>
+
+        <!-- Added: Month-Year Filter (icon inside input, month-only) -->
+        <div id="reportsFilterBar" class="month-filter-bar">
+          <label for="reportsMonth" class="sr-only">Filter month</label>
+          <div class="month-input-wrap">
+            <svg class="month-input-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+              viewBox="0 0 20 20">
+              <path
+                d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+            </svg>
+            <input id="reportsMonth" type="month" class="month-input" placeholder="Select month" />
+          </div>
+          <button id="reportsMonthClear" type="button" class="btn-ghost">Clear</button>
+          <span id="reportsMonthStatus" class="muted"></span>
+        </div>
+
+        <section class="card" aria-label="Saved sales entries" style="margin-top: 20px;">
+          <div class="table-shell">
+            <table id="salesTable" class="table-modern" aria-describedby="tableDesc">
+              <caption id="tableDesc" style="text-align:left; padding-bottom:8px; color: var(--text-muted);">
+                Entries with edit and delete options
+              </caption>
+              <thead class="thead-modern">
+                <tr>
+                  <th>Date</th>
+                  <th>Today Sales (₹)</th>
+                  <th>Box (₹)</th>
+                  <th>Prev Day Change (₹)</th>
+                  <th>More or Less (₹)</th>
+                  <th>Next Day Change (₹)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Entries will appear here -->
+                <!-- Changed to hidden so the script can toggle it -->
+                <tr id="noDataRow" class="no-data" hidden>
+                  <td colspan="7" style="text-align:center;padding:16px 24px;color:#aab;">No data for selected month.
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="totals-row tfoot-modern">
+                  <td>Total</td>
+                  <td id="totalSales">0.00</td>
+                  <td id="totalBox">0.00</td>
+                  <td colspan="4"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
+
+        <div id="importPreviewContainer" style="display:none; margin-top: 10px;">
+          <h3>CSV Preview</h3>
+          <table id="importPreviewTable" border="1" cellpadding="5" cellspacing="0"
+            style="width:100%; border-collapse: collapse;"></table>
+          <button id="confirmImportBtn" class="btn-primary" type="button">
+            <span class="btn-icon"
+              style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('download.png') no-repeat center/contain;margin-right:6px;"></span>
+            Confirm Import
+          </button>
+          <button id="cancelImportBtn" class="btn-ghost" type="button">
+            <span class="btn-icon"
+              style="display:inline-block;width:18px;height:18px;vertical-align:middle;background:url('upload.png') no-repeat center/contain;margin-right:6px;transform:rotate(180deg);"></span>
+            Cancel Import
+          </button>
+        </div>
+
+        <div id="backupReminder" style="margin-top:15px; color:orange; font-weight:bold; display:none;">
+          Remember to export your sales data regularly to avoid losing it!
+        </div>
+
+        <button type="button" id="exportCsvBtn">Export CSV</button>
+        <input type="file" id="importCsvInput" accept=".csv" style="display:none" />
+        <button type="button" id="importCsvBtn">Import CSV</button>
+
+      </section>
+    </main> <!-- Added: close main -->
+  </div>
+
+  <!-- Fixed Bottom Navigation Tab Bar -->
+  <nav class="bottom-nav glass-pane" role="tablist" aria-label="Main navigation tabs">
+    <button class="nav-item active" data-tab="home" role="tab" aria-selected="true" aria-controls="home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" data-tab="dashboard" role="tab" aria-selected="false" aria-controls="dashboard">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Stats</span>
+    </button>
+    <button class="nav-item" data-tab="reports" role="tab" aria-selected="false" aria-controls="reports">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">Reports</span>
+    </button>
+  </nav>
+
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"
+    style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;">
+    <section
+      style="background:#222;color:#fff;padding:32px 24px;border-radius:12px;min-width:320px;box-shadow:0 8px 32px #000a;display:flex;flex-direction:column;gap:16px;max-width:90vw;">
+      <h2 id="settingsTitle" style="margin:0 0 8px 0;color:#7aa2f7;">Settings</h2>
+
+      <!-- Profile Picture Section -->
+      <div
+        style="display:flex; flex-direction:column; align-items:center; gap:12px; padding:16px; background:#333; border-radius:10px;">
+        <div id="profilePicContainer"
+          style="width:100px; height:100px; border-radius:50%; overflow:hidden; border:2px solid var(--accent); background:#222;">
+          <img id="profilePicImg" style="width:100%; height:100%; object-fit:cover; display:none;">
+          <svg id="profilePicDefault" viewBox="0 0 48 48" fill="none" style="width:100%; height:100%;">
+            <circle cx="24" cy="24" r="22" stroke="#7aa2f7" stroke-width="2" fill="#222" />
+            <circle cx="24" cy="20" r="8" fill="#7aa2f7" opacity="0.7" />
+            <ellipse cx="24" cy="34" rx="12" ry="7" fill="#7aa2f7" opacity="0.2" />
+          </svg>
+        </div>
+        <input type="file" id="profilePicInput" accept="image/*" style="font-size:12px;">
+        <button id="saveProfilePicBtn" class="btn-primary" style="padding:4px 12px; font-size:14px;">Save
+          Picture</button>
+        <div id="profilePicStatus" style="font-size:12px; color:var(--success);"></div>
+      </div>
+
+      <p>Theme settings and other preferences coming soon.</p>
+      <button id="closeSettingsBtn" class="btn-ghost" style="margin-top:12px;">Close</button>
+    </section>
+  </div>
 
 
   </div>
@@ -390,15 +385,6 @@
         settingsModal.style.display = 'none';
       });
 
-      // Fix the date: set today's local date and prevent future dates
-      const dateInput = document.getElementById('date');
-      if (dateInput) {
-        const now = new Date();
-        const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-        const todayStr = local.toISOString().slice(0, 10); // YYYY-MM-DD in local time
-        if (!dateInput.value) dateInput.value = todayStr;
-        dateInput.setAttribute('max', todayStr);
-      }
 
       // Default dashboard month to current month if empty
       const monthInput = document.getElementById('dashboardMonth');
