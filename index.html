@@ -136,8 +136,14 @@
               </div>
 
               <div>
-                <label for="todaySales">Today sales (₹)</label>
+                <label for="todaySales">Total Sales (Cash + GPay) (₹)</label>
                 <input id="todaySales" name="todaySales" type="text" inputmode="numeric" pattern="[0-9]*"
+                  title="Only whole numbers are allowed" placeholder="0">
+              </div>
+
+              <div>
+                <label for="gpay">GPay (Online) (₹)</label>
+                <input id="gpay" name="gpay" type="text" inputmode="numeric" pattern="[0-9]*"
                   title="Only whole numbers are allowed" placeholder="0">
               </div>
 
@@ -148,7 +154,7 @@
               </div>
 
               <div>
-                <label for="takenSaving">Saving (₹)</label>
+                <label for="takenSaving">500 Notes (₹)</label>
                 <input id="takenSaving" name="takenSaving" type="text" inputmode="numeric" pattern="[0-9]*"
                   title="Only whole numbers are allowed" placeholder="0">
               </div>
@@ -160,7 +166,7 @@
               </div>
 
               <div class="full">
-                <label>Expected Total (Previous change + Today sales) (₹)</label>
+                <label>Expected Cash in Box (Previous change + Cash sales + GPay) (₹)</label>
                 <input id="expectedBox" readonly type="text">
               </div>
 
@@ -239,7 +245,8 @@
               <thead class="thead-modern">
                 <tr>
                   <th>Date</th>
-                  <th>Today Sales (₹)</th>
+                  <th>Total Sales (₹)</th>
+                  <th>GPay (₹)</th>
                   <th>Box (₹)</th>
                   <th>Prev Day Change (₹)</th>
                   <th>More or Less (₹)</th>

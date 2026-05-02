@@ -58,6 +58,7 @@ const els = {
   daySelect: document.getElementById('daySelect'),
   monthSelect: document.getElementById('monthSelect'),
   yearSelect: document.getElementById('yearSelect'),
+  gpay: document.getElementById('gpay'),
 };
 
 
@@ -102,13 +103,15 @@ function setTodayAndPrevChange() {
 function validateAndCalc() {
   const p = toPaise(els.prevChange.value);
   const s = toPaise(els.todaySales.value);
+  const g = toPaise(els.gpay.value);
   const box = toPaise(els.boxActual.value);
   let taken = toPaise(els.takenSaving.value);
   let leftOverPaise = toPaise(els.leftOver.value);
 
-  // If both are empty, treat as zero
+  // If empty, treat as zero
   if (isNaN(taken)) taken = 0;
   if (isNaN(leftOverPaise)) leftOverPaise = 0;
+  const gpayVal = isNaN(g) ? 0 : g;
 
   // Sync logic: if one is changed, update the other
   if (lastChanged === 'saving') {
@@ -123,19 +126,22 @@ function validateAndCalc() {
     els.leftOver.value = isNaN(leftOverPaise) ? '' : fromPaise(leftOverPaise);
   }
 
-  if ([p, s, box, taken, leftOverPaise].some(v => Number.isNaN(v))) {
+  if ([p, s, gpayVal, box, taken, leftOverPaise].some(v => Number.isNaN(v))) {
     els.status.textContent = 'Please enter valid numbers (no negatives).';
     els.status.className = 'status err';
     return false;
   }
-  if ([p, s, box, taken, leftOverPaise].some(v => v < 0)) {
+  if ([p, s, gpayVal, box, taken, leftOverPaise].some(v => v < 0)) {
     els.status.textContent = 'Negative values are not allowed.';
     els.status.className = 'status err';
     return false;
   }
 
+  // Expected total = prev change + total sales
   const expected = p + s;
-  const variancePaise = box - expected;
+  // Actual total = cash in box + gpay online
+  const actualTotal = box + gpayVal;
+  const variancePaise = actualTotal - expected;
 
   els.expectedBox.value = fromPaise(expected);
   els.variance.value = fromPaise(variancePaise);
@@ -155,11 +161,13 @@ function validateAndCalc() {
 
 // Input listeners
 ['input', 'change', 'blur'].forEach(ev => {
-  ['prevChange', 'todaySales', 'boxActual'].forEach(id => {
-    els[id].addEventListener(ev, () => {
-      lastChanged = null;
-      validateAndCalc();
-    });
+  ['prevChange', 'todaySales', 'gpay', 'boxActual'].forEach(id => {
+    if (els[id]) {
+      els[id].addEventListener(ev, () => {
+        lastChanged = null;
+        validateAndCalc();
+      });
+    }
   });
   els.takenSaving.addEventListener(ev, () => {
     lastChanged = 'saving';
@@ -193,13 +201,14 @@ function renderTotalDonut() {
     const now = new Date(); year = now.getFullYear(); month = now.getMonth() + 1;
   }
 
-  // Monthly aggregates for 4 segments
-  let agg = { prevChange: 0, sales: 0, leftOver: 0, saving: 0 };
+  // Monthly aggregates for 5 segments
+  let agg = { prevChange: 0, sales: 0, gpay: 0, leftOver: 0, saving: 0 };
   entries.forEach(e => {
     const [y, m] = e.date.split('-').map(Number);
     if (y === year && m === month) {
       agg.prevChange += e.prevChange || 0;
       agg.sales += e.todaySales || 0;
+      agg.gpay += e.gpay || 0;
       agg.leftOver += e.leftOver || 0;
       agg.saving += e.takenSaving || 0;
     }
@@ -208,11 +217,12 @@ function renderTotalDonut() {
   const ctx = document.getElementById('totalDonutChart');
   if (!ctx) return;
 
-  // Colors/palette similar to the screenshot (pink, blue, teal, peach)
-  const colors = ['#ec4899', '#3b82f6', '#06b6d4', '#f59e0b'];
+  // Colors/palette similar to the screenshot (pink, blue, indigo, teal, peach)
+  const colors = ['#ec4899', '#3b82f6', '#6366f1', '#06b6d4', '#f59e0b'];
   const values = [
     Math.max(agg.prevChange, 0),
-    Math.max(agg.sales, 0),
+    Math.max(agg.sales - agg.gpay, 0), // Cash Sales
+    Math.max(agg.gpay, 0),             // GPay
     Math.max(agg.leftOver, 0),
     Math.max(agg.saving, 0)
   ];
@@ -220,9 +230,9 @@ function renderTotalDonut() {
   // Fallback to a faint ring if all values are zero
   const allZero = values.every(v => v === 0);
   const data = {
-    labels: ['Prev change', 'Sales', 'Left over', 'Saving'],
+    labels: ['Prev change', 'Cash Sales', 'GPay', 'Left over', '500 Notes'],
     datasets: [{
-      data: allZero ? [1, 1, 1, 1] : values,
+      data: allZero ? [1, 1, 1, 1, 1] : values,
       backgroundColor: colors,
       borderWidth: 0,
       hoverOffset: 6,
@@ -402,7 +412,8 @@ function renderTable() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td data-label="Date">${formatDisplayDate(entry.date)}</td>
-      <td data-label="Today Sales (₹)">₹${fromPaise(entry.todaySales)}</td>
+      <td data-label="Total Sales (₹)">₹${fromPaise(entry.todaySales)}</td>
+      <td data-label="GPay (₹)">₹${fromPaise(entry.gpay || 0)}</td>
       <td data-label="Box (₹)">₹${fromPaise(entry.boxActual)}</td>
       <td data-label="Prev Day Change (₹)">₹${fromPaise(entry.prevChange)}</td>
       <td data-label="More or Less (₹)" class="${entry.variance > 0 ? 'variance-positive' : entry.variance < 0 ? 'variance-negative' : ''}">₹${fromPaise(entry.variance)}</td>
@@ -441,6 +452,7 @@ function loadEntryForEdit(index) {
   const e = entries[index];
   els.prevChange.value = fromPaise(e.prevChange);
   els.todaySales.value = fromPaise(e.todaySales);
+  els.gpay.value = fromPaise(e.gpay || 0);
   els.boxActual.value = fromPaise(e.boxActual);
   els.takenSaving.value = fromPaise(e.takenSaving);
   els.leftOver.value = fromPaise(e.leftOver);
@@ -496,6 +508,7 @@ els.saveBtn.addEventListener('click', () => {
     date: els.date.value,
     prevChange: toPaise(els.prevChange.value),
     todaySales: toPaise(els.todaySales.value),
+    gpay: toPaise(els.gpay.value) || 0,
     boxActual: toPaise(els.boxActual.value),
     takenSaving: toPaise(els.takenSaving.value),
     leftOver: toPaise(els.leftOver.value),
@@ -561,8 +574,8 @@ function updateMonthlySales() {
 
 // CSV Export/Import
 function entriesToCSV(data) {
-  const headers = ["date", "todaySales", "boxActual", "prevChange", "takenSaving", "leftOver", "expectedBox", "variance"];
-  const rows = data.map(entry => headers.map(h => entry[h]).join(','));
+  const headers = ["date", "todaySales", "gpay", "boxActual", "prevChange", "takenSaving", "leftOver", "expectedBox", "variance"];
+  const rows = data.map(entry => headers.map(h => entry[h] || 0).join(','));
   return headers.join(',') + '\n' + rows.join('\n');
 }
 function csvToEntries(csvStr) {
@@ -574,6 +587,8 @@ function csvToEntries(csvStr) {
     headers.forEach((h, i) => {
       obj[h] = h === 'date' ? vals[i] : parseInt(vals[i], 10) || 0;
     });
+    // Ensure gpay exists if it was an old export
+    if (obj.gpay === undefined) obj.gpay = 0;
     return obj;
   });
 }
