@@ -16,11 +16,12 @@ function toPaise(str) {
   return rupees;
 }
 
-function fromPaise(p) {
+function fromPaise(p, includeSymbol = false) {
   if (isNaN(p)) return '';
   const sign = p < 0 ? '-' : '';
+  const symbol = includeSymbol ? '₹' : '';
   p = Math.abs(p);
-  return sign + p.toLocaleString('en-IN');
+  return sign + symbol + p.toLocaleString('en-IN');
 }
 
 function formatDisplayDate(iso) {
@@ -117,8 +118,8 @@ function validateAndCalc() {
   const expected = p + s;
   const actualTotal = box + gpayVal;
   const variancePaise = actualTotal - expected;
-  if (els.expectedBox) els.expectedBox.value = fromPaise(expected);
-  if (els.variance) els.variance.value = fromPaise(variancePaise);
+  if (els.expectedBox) els.expectedBox.value = fromPaise(expected, true);
+  if (els.variance) els.variance.value = fromPaise(variancePaise, true);
   if (els.status) {
     if (variancePaise === 0) { els.status.textContent = 'All inputs look good.'; els.status.className = 'status ok'; }
     else { els.status.textContent = 'Check variance and cash values.'; els.status.className = 'status warn'; }

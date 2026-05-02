@@ -25,12 +25,12 @@
       <!-- Entry Tab -->
       <section id="home" class="tab-content active" role="tabpanel">
         <div class="card">
-          <div id="status" class="status ok">Ready</div>
           
           <form id="saleForm" onsubmit="return false;">
-            <div class="grid">
-              <div class="full field-group">
-                <label for="date">Entry Date</label>
+            <!-- Date & Top Status -->
+            <div class="form-section date-section">
+              <div class="field-group full">
+                <label for="date"><span class="icon">📅</span> Transaction Date</label>
                 <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                   <select id="daySelect"></select>
                   <select id="monthSelect"></select>
@@ -38,51 +38,62 @@
                 </div>
                 <input type="hidden" id="date" name="date">
               </div>
+            </div>
 
-              <div class="field-group">
-                <label for="prevChange">Previous Change</label>
-                <input id="prevChange" name="prevChange" type="text" readonly placeholder="0">
+            <div id="status" class="status ok">Ready for entry</div>
+
+            <!-- Main Input Groups -->
+            <div class="entry-layout">
+              <!-- Left Side: Revenue -->
+              <div class="input-group-card">
+                <h3><span class="icon">📈</span> Revenue</h3>
+                <div class="field-group">
+                  <label for="prevChange">Previous Day Change</label>
+                  <input id="prevChange" name="prevChange" type="text" readonly placeholder="0">
+                </div>
+                <div class="field-group">
+                  <label for="todaySales">Total Daily Sales</label>
+                  <input id="todaySales" name="todaySales" type="text" inputmode="numeric" placeholder="0">
+                </div>
+                <div class="field-group">
+                  <label for="gpay">GPay (Online)</label>
+                  <input id="gpay" name="gpay" type="text" inputmode="numeric" placeholder="0">
+                </div>
               </div>
 
-              <div class="field-group">
-                <label for="todaySales">Total Sales (Cash + GPay)</label>
-                <input id="todaySales" name="todaySales" type="text" inputmode="numeric" placeholder="0">
+              <!-- Right Side: Cash -->
+              <div class="input-group-card">
+                <h3><span class="icon">💰</span> Cash in Hand</h3>
+                <div class="field-group">
+                  <label for="boxActual">Actual Cash in Box</label>
+                  <input id="boxActual" name="boxActual" type="text" inputmode="numeric" placeholder="0">
+                </div>
+                <div class="field-group">
+                  <label for="takenSaving">500 Notes (Saving)</label>
+                  <input id="takenSaving" name="takenSaving" type="text" inputmode="numeric" placeholder="0">
+                </div>
+                <div class="field-group">
+                  <label for="leftOver">Next Day Change</label>
+                  <input id="leftOver" name="leftOver" type="text" inputmode="numeric" placeholder="0">
+                </div>
               </div>
+            </div>
 
-              <div class="field-group">
-                <label for="gpay">GPay (Online)</label>
-                <input id="gpay" name="gpay" type="text" inputmode="numeric" placeholder="0">
+            <!-- Results Summary -->
+            <div class="results-grid">
+              <div class="result-item">
+                <label>Expected Cash</label>
+                <input id="expectedBox" readonly type="text" value="₹0">
               </div>
-
-              <div class="field-group">
-                <label for="boxActual">Box (Actual Cash)</label>
-                <input id="boxActual" name="boxActual" type="text" inputmode="numeric" placeholder="0">
-              </div>
-
-              <div class="field-group">
-                <label for="takenSaving">500 Notes</label>
-                <input id="takenSaving" name="takenSaving" type="text" inputmode="numeric" placeholder="0">
-              </div>
-
-              <div class="field-group">
-                <label for="leftOver">Next Day Change</label>
-                <input id="leftOver" name="leftOver" type="text" inputmode="numeric" placeholder="0">
-              </div>
-
-              <div class="full field-group" style="margin-top: 10px;">
-                <label>Expected Cash in Box</label>
-                <input id="expectedBox" readonly type="text" placeholder="₹0">
-              </div>
-
-              <div class="full field-group">
-                <label>Variance (More/Less)</label>
-                <input id="variance" readonly type="text" placeholder="₹0">
+              <div class="result-item highlight">
+                <label>Variance (Difference)</label>
+                <input id="variance" readonly type="text" value="₹0">
               </div>
             </div>
 
             <div class="buttons">
-              <button class="btn-ghost" id="resetBtn" type="button">Reset</button>
-              <button class="btn-primary" id="saveBtn" type="button" style="flex: 1;">Save Entry</button>
+              <button id="resetBtn" type="button" class="btn-ghost">Reset</button>
+              <button id="saveBtn" type="button" class="btn-primary" style="flex: 1;">Save Entry to Cloud</button>
             </div>
           </form>
         </div>
