@@ -61,22 +61,15 @@ const els = {
 };
 
 
+// LocalStorage removed for online-only mode
 let entries = [];
 let editIndex = -1;
-let dailySalesChart = null; // now used for line chart only
-let totalDonutChart = null; // donut for total amount
+let originalEditDate = null; // Track date to handle ID changes in Firestore
+let dailySalesChart = null; 
+let totalDonutChart = null; 
 let importedEntriesTemp = null;
-let lastChanged = null; // Track which field was last changed: 'saving' or 'leftOver'
-let dashboardMonth = null; // {year, month} for dashboard chart
-
-// LocalStorage
-function saveToLocalStorage() {
-  localStorage.setItem('salesEntries', JSON.stringify(entries));
-}
-function loadFromLocalStorage() {
-  const data = localStorage.getItem('salesEntries');
-  if (data) entries = JSON.parse(data);
-}
+let lastChanged = null; 
+let dashboardMonth = null; 
 
 // Date helpers
 function setToday() {
@@ -394,7 +387,16 @@ function renderTable() {
   let totalSalesPaise = 0;
   let totalBoxPaise = 0;
 
-  entries.forEach((entry, i) => {
+  // Get filter value from reportsMonth if it exists
+  const filterMonth = document.getElementById('reportsMonth')?.value; // "YYYY-MM"
+
+  const filteredEntries = entries.filter(entry => {
+    if (!filterMonth) return true;
+    const [y, m] = entry.date.split('-');
+    return `${y}-${m.padStart(2, '0')}` === filterMonth;
+  });
+
+  filteredEntries.forEach((entry, i) => {
     totalSalesPaise += entry.todaySales;
     totalBoxPaise += entry.boxActual;
     const tr = document.createElement('tr');
@@ -406,12 +408,18 @@ function renderTable() {
       <td data-label="More or Less (₹)" class="${entry.variance > 0 ? 'variance-positive' : entry.variance < 0 ? 'variance-negative' : ''}">₹${fromPaise(entry.variance)}</td>
       <td data-label="Next Day Change (₹)">₹${fromPaise(entry.leftOver)}</td>
       <td data-label="Actions">
-        <button class="btn-ghost btn-edit" data-index="${i}">Edit</button>
-        <button class="btn-danger btn-delete" data-index="${i}">Delete</button>
+        <button class="btn-ghost btn-edit" data-index="${entries.indexOf(entry)}">Edit</button>
+        <button class="btn-danger btn-delete" data-index="${entries.indexOf(entry)}">Delete</button>
       </td>
     `;
     els.salesTableBody.appendChild(tr);
   });
+
+  const noDataRow = document.getElementById('noDataRow');
+  if (noDataRow) noDataRow.hidden = filteredEntries.length > 0;
+  
+  const tfoot = els.salesTableBody.closest('table').querySelector('tfoot');
+  if (tfoot) tfoot.hidden = filteredEntries.length === 0;
 
   els.totalSales.textContent = `₹${fromPaise(totalSalesPaise)}`;
   els.totalBox.textContent = `₹${fromPaise(totalBoxPaise)}`;
@@ -425,7 +433,7 @@ function renderTable() {
 
   renderDailySalesChart();
   updateMonthlySales();
-  renderTotalDonut(); // keep donut in sync
+  renderTotalDonut();
 }
 
 // Edit & Delete
@@ -447,6 +455,7 @@ function loadEntryForEdit(index) {
 
 
   editIndex = index;
+  originalEditDate = e.date;
   els.saveBtn.textContent = 'Update Entry';
   els.status.textContent = `Editing entry for ${formatDisplayDate(e.date)}`;
   els.status.className = 'status warn';
@@ -457,16 +466,30 @@ function loadEntryForEdit(index) {
 
 }
 function deleteEntry(index) {
-  if (confirm(`Delete entry for ${formatDisplayDate(entries[index].date)}?`)) {
-    entries.splice(index, 1);
-    saveToLocalStorage();
-    renderTable();
-    setPrevChangeFromLastEntry();
+  if (!currentUser) {
+    alert("Please login to delete entries.");
+    return;
+  }
+  const entry = entries[index];
+  if (confirm(`Delete entry for ${formatDisplayDate(entry.date)}?`)) {
+    deleteEntryFromCloud(entry.date)
+      .then(() => {
+        els.status.textContent = 'Entry deleted.';
+        els.status.className = 'status ok';
+      })
+      .catch(err => {
+        els.status.textContent = 'Error deleting: ' + err.message;
+        els.status.className = 'status err';
+      });
   }
 }
 
 // Save Entry
 els.saveBtn.addEventListener('click', () => {
+  if (!currentUser) {
+    alert("Please login to save entries.");
+    return;
+  }
   if (!validateAndCalc()) return;
 
   const entry = {
@@ -480,24 +503,34 @@ els.saveBtn.addEventListener('click', () => {
     variance: toPaise(els.variance.value),
   };
 
+  els.status.textContent = 'Saving to cloud...';
+  
+  let promise;
   if (editIndex >= 0) {
-    entries[editIndex] = entry;
-    els.status.textContent = 'Entry updated.';
+    // If date changed, delete old one
+    if (entry.date !== originalEditDate) {
+      promise = deleteEntryFromCloud(originalEditDate).then(() => saveEntryToCloud(entry));
+    } else {
+      promise = saveEntryToCloud(entry);
+    }
   } else {
-    entries.push(entry);
-    els.status.textContent = 'Entry saved.';
+    promise = saveEntryToCloud(entry);
   }
-  els.status.className = 'status ok';
 
-  saveToLocalStorage();
-  renderTable();
-  setPrevChangeFromLastEntry();
-
-  document.getElementById('saleForm').reset();
-  setPrevChangeFromLastEntry();
-  els.leftOver.value = els.expectedBox.value = els.variance.value = '';
-  editIndex = -1;
-  els.saveBtn.textContent = 'Save Entry';
+  promise.then(() => {
+    els.status.textContent = 'Entry saved to cloud.';
+    els.status.className = 'status ok';
+    
+    document.getElementById('saleForm').reset();
+    setPrevChangeFromLastEntry();
+    els.leftOver.value = els.expectedBox.value = els.variance.value = '';
+    editIndex = -1;
+    originalEditDate = null;
+    els.saveBtn.textContent = 'Save Entry';
+  }).catch(err => {
+    els.status.textContent = 'Error saving: ' + err.message;
+    els.status.className = 'status err';
+  });
 });
 
 // Monthly sales update
@@ -613,14 +646,15 @@ function showCSVPreview(data) {
   els.importPreviewTable.appendChild(tbody);
 }
 els.confirmImportBtn.addEventListener('click', () => {
-  if (!importedEntriesTemp) return;
-  entries = importedEntriesTemp;
-  saveToLocalStorage();
-  renderTable();
-  setPrevChangeFromLastEntry();
-  els.importPreviewContainer.style.display = 'none';
-  els.backupReminder.style.display = 'none';
-  importedEntriesTemp = null;
+  if (!importedEntriesTemp || !currentUser) return;
+  saveEntriesToFirestore(currentUser.uid, importedEntriesTemp)
+    .then(() => {
+      els.importPreviewContainer.style.display = 'none';
+      els.backupReminder.style.display = 'none';
+      importedEntriesTemp = null;
+      alert("Import successful!");
+    })
+    .catch(err => alert("Import failed: " + err.message));
 });
 els.cancelImportBtn.addEventListener('click', () => {
   els.importPreviewContainer.style.display = 'none';
@@ -646,13 +680,6 @@ function activateTab(targetTab) {
 
 navItems.forEach(item => {
   item.addEventListener('click', () => activateTab(item.dataset.tab));
-});
-
-
-// Initial tab state
-document.addEventListener('DOMContentLoaded', () => {
-  const activeTab = document.querySelector('.nav-item.active')?.dataset.tab || 'home';
-  activateTab(activeTab);
 });
 
 
@@ -721,7 +748,6 @@ function saveEntriesToFirestore(uid, entries) {
   });
 }
 
-// Listen for real-time updates from Firestore
 function listenToUserSales(uid) {
   if (userUnsub) userUnsub();
   userUnsub = getUserSalesRef(uid).onSnapshot(snapshot => {
@@ -730,26 +756,20 @@ function listenToUserSales(uid) {
     // Sort by date ascending
     newEntries.sort((a, b) => a.date.localeCompare(b.date));
     entries = newEntries;
-    saveToLocalStorage(); // keep local cache
     renderTable();
     setPrevChangeFromLastEntry();
   });
 }
 
-// Save to Firestore on any change
-function syncToCloud() {
-  if (currentUser && firestore) {
-    saveEntriesToFirestore(currentUser.uid, entries);
-  }
+function saveEntryToCloud(entry) {
+  if (!currentUser) return Promise.reject("Not logged in");
+  return getUserSalesRef(currentUser.uid).doc(entry.date).set(entry);
 }
 
-// --- Patch all save points to sync to Firestore ---
-function saveToLocalStorage() {
-  localStorage.setItem('salesEntries', JSON.stringify(entries));
-  syncToCloud();
+function deleteEntryFromCloud(date) {
+  if (!currentUser) return Promise.reject("Not logged in");
+  return getUserSalesRef(currentUser.uid).doc(date).delete();
 }
-
-// --- Patch import, delete, save, etc. to always call saveToLocalStorage (already done) ---
 
 // --- Auth UI ---
 function setupAuthUI() {
@@ -812,6 +832,7 @@ function setupAuthUI() {
       currentUser = user;
       // Sync from Firestore
       listenToUserSales(user.uid);
+      syncProfileIcons();
     } else {
       loginModal.style.display = 'flex';
       registerModal.style.display = 'none';
@@ -820,9 +841,9 @@ function setupAuthUI() {
       currentUser = null;
       if (userUnsub) userUnsub();
       entries = [];
-      saveToLocalStorage();
       renderTable();
       setPrevChangeFromLastEntry();
+      syncProfileIcons();
     }
   });
 }
@@ -846,7 +867,6 @@ function setupAuthUI() {
 function initDateSelects() {
   if (!els.daySelect || !els.monthSelect || !els.yearSelect) return;
 
-  // Populate days
   // Populate days
   for (let i = 1; i <= 31; i++) {
     const opt = document.createElement('option');
@@ -888,101 +908,201 @@ function initDateSelects() {
   updateHiddenDate();
 }
 
-
-// --- Profile Image Sync ---
+// --- Profile picture logic updated for Firestore ---
 function syncProfileIcons() {
-  const pic = localStorage.getItem('profilePicDataUrl');
   const topImg = document.getElementById('profileBtnImg');
   const topDef = document.getElementById('profileBtnDefault');
 
-  if (pic) {
-    if (topImg) {
-      topImg.src = pic;
-      topImg.style.display = 'block';
+  if (currentUser) {
+    firestore.collection('users').doc(currentUser.uid).get().then(doc => {
+      const data = doc.data();
+      if (data && data.profilePic) {
+        if (topImg) {
+          topImg.src = data.profilePic;
+          topImg.style.display = 'block';
+        }
+        if (topDef) topDef.style.display = 'none';
+      } else {
+        if (topImg) topImg.style.display = 'none';
+        if (topDef) topDef.style.display = 'block';
+      }
+    });
+  } else {
+    if (topImg) topImg.style.display = 'none';
+    if (topDef) topDef.style.display = 'block';
+  }
+}
+
+function setupReportsFilter() {
+  const monthInput = document.getElementById('reportsMonth');
+  const clearBtn = document.getElementById('reportsMonthClear');
+  if (!monthInput) return;
+
+  // Default to current month
+  if (!monthInput.value) {
+    const now = new Date();
+    monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  monthInput.addEventListener('change', renderTable);
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      monthInput.value = '';
+      renderTable();
+    });
+  }
+}
+
+function setupProfileDropdown() {
+  const profileBtn = document.getElementById('profileBtn');
+  const profileDropdown = document.getElementById('profileDropdown');
+  const profileBtnPic = document.getElementById('profileBtnPic');
+
+  if (profileBtnPic && profileBtn) {
+    profileBtnPic.addEventListener('click', (e) => {
+      e.stopPropagation();
+      profileBtn.focus();
+      profileBtn.click();
+    });
+  }
+
+  if (profileBtn) {
+    profileBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const show = profileDropdown.style.display !== 'block';
+      profileDropdown.style.display = show ? 'block' : 'none';
+      profileBtn.setAttribute('aria-expanded', show ? 'true' : 'false');
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (profileDropdown && !profileDropdown.contains(e.target) && profileBtn && !profileBtn.contains(e.target)) {
+      profileDropdown.style.display = 'none';
+      profileBtn.setAttribute('aria-expanded', 'false');
     }
-    if (topDef) topDef.style.display = 'none';
+  });
+}
+
+function setupMobileSidebar() {
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('default-sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+
+  if (sidebarToggle && sidebar && backdrop) {
+    sidebarToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const expanded = sidebarToggle.getAttribute('aria-expanded') === 'true';
+      sidebarToggle.setAttribute('aria-expanded', !expanded);
+      sidebar.classList.toggle('open', !expanded);
+      backdrop.toggleAttribute('hidden', expanded);
+    });
+
+    backdrop.addEventListener('click', () => {
+      sidebarToggle.setAttribute('aria-expanded', 'false');
+      sidebar.classList.remove('open');
+      backdrop.setAttribute('hidden', '');
+    });
   }
 }
 
 // --- Master Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
   initDateSelects();
-  loadFromLocalStorage();
   setupDashboardMonthPicker();
   renderTable();
   setTodayAndPrevChange();
   validateAndCalc();
-  syncProfileIcons();
+  setupReportsFilter();
+  setupProfileDropdown();
+  setupMobileSidebar();
+  setupSettingsModal();
 });
 
-
-
-document.addEventListener('DOMContentLoaded', function () {
-  // Settings modal logic
+function setupSettingsModal() {
   const openSettingsBtn = document.getElementById('openSettingsBtn');
   const settingsModal = document.getElementById('settingsModal');
   const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-  openSettingsBtn.addEventListener('click', function () {
-    settingsModal.style.display = 'flex';
-    profileDropdown.style.display = 'none';
-    // Load profile pic if set
-    const pic = localStorage.getItem('profilePicDataUrl');
-    const img = document.getElementById('profilePicImg');
-    const def = document.getElementById('profilePicDefault');
-    if (pic) {
-      img.src = pic;
-      img.style.display = '';
-      def.style.display = 'none';
-    } else {
-      img.style.display = 'none';
-      def.style.display = '';
-    }
-    // Clear status
-    const status = document.getElementById('profilePicStatus');
-    if (status) status.textContent = '';
-    // Clear file input
-    const input = document.getElementById('profilePicInput');
-    if (input) input.value = '';
-  });
-  closeSettingsBtn.addEventListener('click', function () {
-    settingsModal.style.display = 'none';
-  });
-
-  // Profile picture change logic (UI only, localStorage)
-  let profilePicTempDataUrl = null;
-  const profilePicInput = document.getElementById('profilePicInput');
-  profilePicInput.addEventListener('change', function () {
-    const file = this.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      profilePicTempDataUrl = e.target.result;
+  
+  if (openSettingsBtn) {
+    openSettingsBtn.addEventListener('click', function () {
+      settingsModal.style.display = 'flex';
+      const profileDropdown = document.getElementById('profileDropdown');
+      if (profileDropdown) profileDropdown.style.display = 'none';
+      
       const img = document.getElementById('profilePicImg');
       const def = document.getElementById('profilePicDefault');
-      img.src = e.target.result;
-      img.style.display = '';
-      def.style.display = 'none';
-      // Show preview, but not save yet
+      
+      if (currentUser) {
+        firestore.collection('users').doc(currentUser.uid).get().then(doc => {
+          const data = doc.data();
+          if (data && data.profilePic) {
+            img.src = data.profilePic;
+            img.style.display = '';
+            def.style.display = 'none';
+          } else {
+            img.style.display = 'none';
+            def.style.display = '';
+          }
+        });
+      }
+      
       const status = document.getElementById('profilePicStatus');
-      if (status) status.textContent = 'Preview only. Click Save to apply.';
-    };
-    reader.readAsDataURL(file);
-  });
+      if (status) status.textContent = '';
+      const input = document.getElementById('profilePicInput');
+      if (input) input.value = '';
+    });
+  }
 
-  // Save profile picture button
+  if (closeSettingsBtn) {
+    closeSettingsBtn.addEventListener('click', function () {
+      settingsModal.style.display = 'none';
+    });
+  }
+
+  let profilePicTempDataUrl = null;
+  const profilePicInput = document.getElementById('profilePicInput');
+  if (profilePicInput) {
+    profilePicInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        profilePicTempDataUrl = e.target.result;
+        const img = document.getElementById('profilePicImg');
+        const def = document.getElementById('profilePicDefault');
+        img.src = e.target.result;
+        img.style.display = '';
+        def.style.display = 'none';
+        const status = document.getElementById('profilePicStatus');
+        if (status) status.textContent = 'Preview only. Click Save to apply.';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   const saveProfilePicBtn = document.getElementById('saveProfilePicBtn');
-  saveProfilePicBtn.addEventListener('click', function (e) {
-    e.preventDefault();
-    const status = document.getElementById('profilePicStatus');
-    if (profilePicTempDataUrl) {
-      localStorage.setItem('profilePicDataUrl', profilePicTempDataUrl);
-      if (status) status.textContent = 'Profile picture saved!';
-      profilePicTempDataUrl = null;
-      syncProfileIcons(); // Update top bar immediately
-    } else {
-      if (status) status.textContent = 'Please select a picture first.';
-    }
-
-  });
-
-});
+  if (saveProfilePicBtn) {
+    saveProfilePicBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (!currentUser) {
+        alert("Please login to save profile picture.");
+        return;
+      }
+      const status = document.getElementById('profilePicStatus');
+      if (profilePicTempDataUrl) {
+        status.textContent = 'Saving to cloud...';
+        firestore.collection('users').doc(currentUser.uid).set({
+          profilePic: profilePicTempDataUrl
+        }, { merge: true }).then(() => {
+          status.textContent = 'Profile picture saved to cloud!';
+          profilePicTempDataUrl = null;
+          syncProfileIcons();
+        }).catch(err => {
+          status.textContent = 'Error: ' + err.message;
+        });
+      } else {
+        if (status) status.textContent = 'Please select a picture first.';
+      }
+    });
+  }
+}
